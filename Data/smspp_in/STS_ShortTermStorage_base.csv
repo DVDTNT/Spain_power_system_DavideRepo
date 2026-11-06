@@ -1,0 +1,4 @@
+Name;Zone;NumberUnits;MaxPower;MaxVolume;TurbineEfficiency;PumpingEfficiency;MinPower;MinVolume;Energy;Inflows;InitialVolume;AddPumpedStorage;MaxAddedCapacity;MaxRetCapacity;InvestmentCost
+Pumped Storage;FR;1;21415.13549;2141513.549;1;0.866;-21415.13549;0;0;0;0;0;0;0;0
+Lithium-Ion;FR;1;96977.25416;387909.0166;1;0.95;-96977.25416;0;0;0;0;0;1000;0;100
+Lithium-Ion;PT;1;2929.103951;11716.4158;1;0.95;-2929.103951;0;0;0;0;0;1000;0;100

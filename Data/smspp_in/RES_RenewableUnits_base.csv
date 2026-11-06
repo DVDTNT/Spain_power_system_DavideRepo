@@ -1,0 +1,8 @@
+Name;Zone;NumberUnits;MaxPower;MinPower;MaxPowerProfile;Energy;Kappa;Capacity;MaxAddedCapacity;MaxRetCapacity;InvestmentCost
+Solar|PV;FR;1;367510.13;0;AggregatedTimeSerie_Solar|PV_BigFrance.csv;522510525.3;1;367510.12;1000;0;476775
+Wind|Onshore;FR;1;231281.86;0;AggregatedTimeSerie_Wind|Onshore_BigFrance.csv;515510696.9;1;231281.86;1000;0;1059500
+Wind|Offshore;FR;1;62886.82;0;AggregatedTimeSerie_Wind|Offshore_BigFrance.csv;268127931.7;1;62886.82;1000;0;2051192
+Hydro|Run of River;FR;1;86294837;0;AggregatedTimeSerie_Hydro|Run of River_BigFrance.csv;86294837;1;26508.25;0;0;0
+Solar|PV;PT;1;11553.53;0;EDF__PV-LoadFactor-PresentClimate-PT__13082019__13082019__v1.csv;21688434.81;1;11553.53;1000;0;476775
+Wind|Onshore;PT;1;14351.49;0;EDF__WindOnshore-LoadFactor-PresentClimate-PT__13082019__13082019__v1.csv;35851599.92;1;14351.49;1000;0;1059500
+Hydro|Run of River;PT;1;13873513.17;0;EDF__RunOfRiver-HourlyCoefficient-PresentClimate-PT__18092019__18092019__v1.csv;13873513.17;1;4373;0;0;0

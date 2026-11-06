@@ -1,0 +1,7 @@
+Technology,StartupTime_h,Ramping_pct_per_h,MinLoad_pct,MinUp_h,MinDown_h,Deprication_start_up_cost (€/?MW),Fule_start_up_cost (€/?MW)
+Nuclear,8,20,42.5,36,36,1.7,-
+Hard Coal,6,40,37.5,6,5,3.25,-
+Lignite,5,40,35,5.5,6.5,2,-
+Gas CC,1,50,25,2.5,0.5,10,-
+Gas OCGT,0.5,100,10,0.5,0.5,10,-
+Oil,1,40,35,5,5,10,-

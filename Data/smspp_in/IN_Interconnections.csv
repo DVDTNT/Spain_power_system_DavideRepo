@@ -1,0 +1,4 @@
+Name;StartLine;EndLine;MaxPowerFlow;MinPowerFlow;MaxAddedCapacity;MaxRetCapacity;InvestmentCost
+ES>PT;ES;PT;13003.891;-13003.891;500.0;0.0;100.0
+ES>FR;ES;FR;5652.894;-5652.894;500.0;0.0;100.0
+PT>FR;PT;FR;0.0;-0.0;500.0;0.0;100.0

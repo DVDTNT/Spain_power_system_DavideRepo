@@ -1,0 +1,3 @@
+Name;Zone;HydroSystem;NumberUnits;MaxPower;MinPower;MaxVolume;MinVolume;Inflows;InflowsProfile;InitialVolume;TurbineEfficiency;PumpingEfficiency;AddPumpedStorage
+Reservoir;FR;0;1;41917.02033;0;16256280.72;0;96118939.76;AggregatedTimeSerie_Inflows_BigFrance.csv;6038047.126;1;0;0
+Reservoir;ES;0;1;6940.97;0;16409036.88;0;27075319.09;EDF__Inflow-HourlyCoefficient-PresentClimate-ES__18092019__18092019__v1.csv;4922711.064;1;0;0

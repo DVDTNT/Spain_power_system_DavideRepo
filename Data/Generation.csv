@@ -1,0 +1,376 @@
+﻿Node,GeneratorTechnology,generatoReferenceInitialCapacity in MW
+France,Bio,1402.71
+France,Coal,1812.46
+France,Gas CCGT,10506.632
+France,Geo,1.85
+France,Hydro regulated,8787.34
+France,Hydro run-of-the-river,11598.12
+France,Nuclear,61370
+France,Oil,3042.47
+France,Solar,17419.3
+France,Waste,967.67
+France,Wave,243.09
+France,Wind offshore floating,0
+France,Wind offshore grounded,1483
+France,Wind onshore,22134.06
+Portugal,Bio,681
+Portugal,Coal,0
+Portugal,Gas CCGT,3546.16
+Portugal,Geo,0
+Portugal,Hydro regulated,1629
+Portugal,Hydro run-of-the-river,2855.5
+Portugal,Nuclear,0
+Portugal,Oil,0
+Portugal,Solar,1810.8
+Portugal,Waste,0
+Portugal,Wave,0
+Portugal,Wind offshore floating,0
+Portugal,Wind offshore grounded,25
+Portugal,Wind onshore,5332.8
+France,Gas OCGT,2626.658
+Portugal,Gas OCGT,886.54
+EU,Bio,30073.76
+EU,Coal,56669.85
+EU,Gas CCGT,146830.312
+EU,Gas OCGT,32535.828
+EU,Geo,951.95
+EU,Hydro regulated,70364.3
+EU,Hydro run-of-the-river,44016.34
+EU,Lignite,52316.56
+EU,Nuclear,35259.6
+EU,Oil,11028.14
+EU,Solar,173056.76
+EU,Waste,5317.75
+EU,Wave,8
+EU,Wind offshore floating,0
+EU,Wind offshore grounded,28746.4
+EU,Wind onshore,159797.01
+ES111,Bio,143.509
+ES120,Bio,110.502
+ES213,Bio,81.8
+ES220,Bio,43.053
+ES413,Bio,71.755
+ES422,Bio,71.755
+ES532,Bio,54.533
+ES615,Bio,130.593
+ES111,Coal,816.762
+ES120,Coal,1462.394
+ES532,Coal,288.923
+ES612,Coal,654.521
+ES111,Gas CCGT,1129.26
+ES120,Gas CCGT,779.474
+ES130,Gas CCGT,35.511
+ES211,Gas CCGT,41.726
+ES212,Gas CCGT,44.389
+ES213,Gas CCGT,1746.27
+ES220,Gas CCGT,1781.781
+ES230,Gas CCGT,18.643
+ES242,Gas CCGT,22.195
+ES243,Gas CCGT,1805.751
+ES300,Gas CCGT,90.554
+ES412,Gas CCGT,28.409
+ES414,Gas CCGT,44.389
+ES417,Gas CCGT,20.419
+ES418,Gas CCGT,40.838
+ES423,Gas CCGT,20.419
+ES425,Gas CCGT,673.828
+ES511,Gas CCGT,2344.636
+ES512,Gas CCGT,22.195
+ES514,Gas CCGT,1146.128
+ES522,Gas CCGT,1479.047
+ES523,Gas CCGT,1094.637
+ES532,Gas CCGT,882.457
+ES612,Gas CCGT,3564.45
+ES614,Gas CCGT,43.501
+ES615,Gas CCGT,1526.1
+ES616,Gas CCGT,23.082
+ES617,Gas CCGT,369.318
+ES620,Gas CCGT,3078.833
+ES111,Gas OCGT,214.06
+ES112,Gas OCGT,98.879
+ES113,Gas OCGT,145.07
+ES114,Gas OCGT,28.117
+ES120,Gas OCGT,162.932
+ES130,Gas OCGT,30.095
+ES211,Gas OCGT,16.812
+ES212,Gas OCGT,3.62
+ES213,Gas OCGT,116.297
+ES220,Gas OCGT,186.333
+ES230,Gas OCGT,26.459
+ES241,Gas OCGT,38.18
+ES242,Gas OCGT,81.004
+ES243,Gas OCGT,430.085
+ES300,Gas OCGT,23.779
+ES412,Gas OCGT,74.804
+ES413,Gas OCGT,71.719
+ES414,Gas OCGT,74.337
+ES415,Gas OCGT,131.221
+ES416,Gas OCGT,29.187
+ES417,Gas OCGT,62.471
+ES418,Gas OCGT,84.907
+ES419,Gas OCGT,106.456
+ES421,Gas OCGT,163.991
+ES422,Gas OCGT,195.922
+ES423,Gas OCGT,183.442
+ES424,Gas OCGT,177.221
+ES425,Gas OCGT,100.114
+ES431,Gas OCGT,267.872
+ES432,Gas OCGT,434.475
+ES511,Gas OCGT,143.844
+ES512,Gas OCGT,8.897
+ES513,Gas OCGT,34.669
+ES514,Gas OCGT,300.951
+ES521,Gas OCGT,14.772
+ES522,Gas OCGT,139.326
+ES523,Gas OCGT,198.377
+ES532,Gas OCGT,82.048
+ES611,Gas OCGT,78.612
+ES612,Gas OCGT,378.976
+ES613,Gas OCGT,25.032
+ES614,Gas OCGT,70.575
+ES615,Gas OCGT,159.38
+ES616,Gas OCGT,15.447
+ES617,Gas OCGT,79.641
+ES618,Gas OCGT,202.259
+ES620,Gas OCGT,281.894
+ES111,Hydro regulated,334.094
+ES112,Hydro regulated,461.239
+ES113,Hydro regulated,2625.411
+ES120,Hydro regulated,328.684
+ES213,Hydro regulated,171.781
+ES241,Hydro regulated,179.897
+ES243,Hydro regulated,660.072
+ES413,Hydro regulated,611.378
+ES415,Hydro regulated,2729.561
+ES419,Hydro regulated,1353.96
+ES425,Hydro regulated,535.632
+ES431,Hydro regulated,213.712
+ES432,Hydro regulated,3215.147
+ES512,Hydro regulated,182.602
+ES513,Hydro regulated,463.944
+ES514,Hydro regulated,541.043
+ES523,Hydro regulated,1004.987
+ES617,Hydro regulated,158.255
+ES111,Hydro run-of-the-river,0
+ES112,Hydro run-of-the-river,5.095
+ES113,Hydro run-of-the-river,506.937
+ES120,Hydro run-of-the-river,0
+ES213,Hydro run-of-the-river,0
+ES230,Hydro run-of-the-river,4.663
+ES241,Hydro run-of-the-river,313.731
+ES243,Hydro run-of-the-river,21.072
+ES413,Hydro run-of-the-river,49.744
+ES415,Hydro run-of-the-river,0
+ES418,Hydro run-of-the-river,3.627
+ES419,Hydro run-of-the-river,0
+ES425,Hydro run-of-the-river,0
+ES431,Hydro run-of-the-river,0
+ES432,Hydro run-of-the-river,0
+ES511,Hydro run-of-the-river,4.7
+ES512,Hydro run-of-the-river,2.591
+ES513,Hydro run-of-the-river,6.391
+ES514,Hydro run-of-the-river,0
+ES523,Hydro run-of-the-river,0
+ES613,Hydro run-of-the-river,14.509
+ES614,Hydro run-of-the-river,55.944
+ES615,Hydro run-of-the-river,8.636
+ES616,Hydro run-of-the-river,86.482
+ES617,Hydro run-of-the-river,30.606
+ES618,Hydro run-of-the-river,40.071
+ES111,Lignite,0
+ES112,Lignite,0
+ES113,Lignite,0
+ES114,Lignite,0
+ES120,Lignite,0
+ES130,Lignite,0
+ES211,Lignite,0
+ES212,Lignite,0
+ES213,Lignite,0
+ES220,Lignite,0
+ES230,Lignite,0
+ES241,Lignite,0
+ES242,Lignite,0
+ES243,Lignite,0
+ES300,Lignite,0
+ES412,Lignite,0
+ES413,Lignite,0
+ES414,Lignite,0
+ES415,Lignite,0
+ES416,Lignite,0
+ES417,Lignite,0
+ES418,Lignite,0
+ES419,Lignite,0
+ES421,Lignite,0
+ES422,Lignite,0
+ES423,Lignite,0
+ES424,Lignite,0
+ES425,Lignite,0
+ES431,Lignite,0
+ES432,Lignite,0
+ES511,Lignite,0
+ES512,Lignite,0
+ES513,Lignite,0
+ES514,Lignite,0
+ES521,Lignite,0
+ES522,Lignite,0
+ES523,Lignite,0
+ES532,Lignite,0
+ES611,Lignite,0
+ES612,Lignite,0
+ES613,Lignite,0
+ES614,Lignite,0
+ES615,Lignite,0
+ES616,Lignite,0
+ES617,Lignite,0
+ES618,Lignite,0
+ES620,Lignite,0
+ES111,Oil,249.097
+ES130,Oil,236.642
+ES422,Oil,217.96
+ES111,Solar,0
+ES112,Solar,1.438
+ES113,Solar,0
+ES114,Solar,8.63
+ES120,Solar,0
+ES130,Solar,37.902
+ES211,Solar,1.079
+ES212,Solar,0
+ES213,Solar,0
+ES220,Solar,125.788
+ES230,Solar,49.409
+ES241,Solar,77.817
+ES242,Solar,563.997
+ES243,Solar,968.762
+ES300,Solar,207.345
+ES412,Solar,27.33
+ES413,Solar,236.185
+ES414,Solar,140.316
+ES415,Solar,181.598
+ES416,Solar,223.24
+ES417,Solar,53.005
+ES418,Solar,573.562
+ES419,Solar,261.357
+ES421,Solar,721.861
+ES422,Solar,2401.337
+ES423,Solar,1356.124
+ES424,Solar,1182.653
+ES425,Solar,413.18
+ES431,Solar,3544.577
+ES432,Solar,2635.508
+ES511,Solar,16.11
+ES512,Solar,5.826
+ES513,Solar,44.375
+ES514,Solar,15.175
+ES521,Solar,137.08
+ES522,Solar,54.084
+ES523,Solar,92.561
+ES532,Solar,195.694
+ES611,Solar,688.706
+ES612,Solar,936.039
+ES613,Solar,337.161
+ES614,Solar,593.34
+ES615,Solar,627.358
+ES616,Solar,157.073
+ES617,Solar,180.879
+ES618,Solar,2624.001
+ES620,Solar,1167.837
+ES111,Waste,110.73
+ES112,Waste,0
+ES113,Waste,0
+ES114,Waste,0
+ES120,Waste,85.262
+ES130,Waste,0
+ES211,Waste,0
+ES212,Waste,0
+ES213,Waste,63.116
+ES220,Waste,33.219
+ES230,Waste,0
+ES241,Waste,0
+ES242,Waste,0
+ES243,Waste,0
+ES300,Waste,0
+ES412,Waste,0
+ES413,Waste,55.365
+ES414,Waste,0
+ES415,Waste,0
+ES416,Waste,0
+ES417,Waste,0
+ES418,Waste,0
+ES419,Waste,0
+ES421,Waste,0
+ES422,Waste,55.365
+ES423,Waste,0
+ES424,Waste,0
+ES425,Waste,0
+ES431,Waste,0
+ES432,Waste,0
+ES511,Waste,0
+ES512,Waste,0
+ES513,Waste,0
+ES514,Waste,0
+ES521,Waste,0
+ES522,Waste,0
+ES523,Waste,0
+ES532,Waste,42.077
+ES611,Waste,0
+ES612,Waste,0
+ES613,Waste,0
+ES614,Waste,0
+ES615,Waste,100.765
+ES616,Waste,0
+ES617,Waste,0
+ES618,Waste,0
+ES620,Waste,0
+ES111,Wind onshore,1632.887
+ES112,Wind onshore,1526.118
+ES113,Wind onshore,526.555
+ES114,Wind onshore,519.614
+ES120,Wind onshore,587.045
+ES130,Wind onshore,401.61
+ES211,Wind onshore,269.723
+ES212,Wind onshore,18.841
+ES213,Wind onshore,45.615
+ES220,Wind onshore,1328.982
+ES230,Wind onshore,408.551
+ES241,Wind onshore,302.447
+ES242,Wind onshore,728.848
+ES243,Wind onshore,4281.461
+ES300,Wind onshore,62.473
+ES412,Wind onshore,1344.65
+ES413,Wind onshore,503.748
+ES414,Wind onshore,1162.19
+ES415,Wind onshore,229.066
+ES416,Wind onshore,243.941
+ES417,Wind onshore,1085.041
+ES418,Wind onshore,766.53
+ES419,Wind onshore,659.434
+ES421,Wind onshore,2104.734
+ES422,Wind onshore,273.69
+ES423,Wind onshore,1575.105
+ES424,Wind onshore,662.409
+ES425,Wind onshore,177.502
+ES431,Wind onshore,19.833
+ES432,Wind onshore,146.761
+ES511,Wind onshore,75.364
+ES512,Wind onshore,0
+ES513,Wind onshore,250.387
+ES514,Wind onshore,870.651
+ES521,Wind onshore,90.238
+ES522,Wind onshore,907.143
+ES523,Wind onshore,570.187
+ES532,Wind onshore,0
+ES611,Wind onshore,536.472
+ES612,Wind onshore,1307.96
+ES613,Wind onshore,0
+ES614,Wind onshore,435.325
+ES615,Wind onshore,348.062
+ES616,Wind onshore,0
+ES617,Wind onshore,710.007
+ES618,Wind onshore,182.46
+ES620,Wind onshore,279.64
+ES213,Wind offshore floating,0
+ES213,Wind offshore grounded,0
+ES424,Nuclear,1024.154
+ES432,Nuclear,2010.84
+ES514,Nuclear,3023.465
+ES523,Nuclear,1058.741
