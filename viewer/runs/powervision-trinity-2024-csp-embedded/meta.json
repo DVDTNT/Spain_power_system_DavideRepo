@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "id": "powervision-trinity-2024-csp-embedded",
+ "name": "PowerVision Trinity, CSP embedded (Option A)",
+ "note": "The PowerVision market-chain run of this repo (DA, ID2, ID3, CID, BAL gates + AC/DC redispatch) on its two study days, published into the run viewer. Real price = OMIE's monthly-average day-ahead profile for July/December (Data/OMIE/omie_price.csv); real mix = OMIE per-technology generation; real physical = ENTSO-E actual generation. REE e-sios series and the PowerVision paper facts are not bundled, so those sections show their missing-data notes.",
+ "published": "2026-11-05T17:00:35",
+ "published_by": "publish_powervision_run.py",
+ "first_day": "2024-07-08",
+ "last_day": "2024-12-02",
+ "n_days": 2,
+ "ac_solved": 48,
+ "ac_total": 48,
+ "months": [
+  "2024-07",
+  "2024-12"
+ ],
+ "size_mb": 0.1,
+ "info": {
+  "ran_by": "PowerVision (Spain_power_system repo)",
+  "branch": "public_version",
+  "commit": "-",
+  "commit_message": "",
+  "uncommitted_files": [],
+  "started": "-",
+  "finished": "-",
+  "runtime_min": null,
+  "power_flow": "AC",
+  "linear_solver": "default",
+  "label": "Trinity",
+  "reconstructed": false
+ },
+ "scenario": {
+  "label": "Trinity",
+  "period": 2,
+  "weather_years": [
+   2024
+  ]
+ },
+ "features": {
+  "res": "accepted",
+  "xb": true,
+  "gas": true,
+  "markup": false,
+  "hydro": false,
+  "chain": "day"
+ }
+}

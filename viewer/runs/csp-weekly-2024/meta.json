@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "id": "csp-weekly-2024",
+ "name": "CSP weekly scenarios (synthetic July week)",
+ "note": "Standalone 7-day CSP/TES experiment (CSP/csp_weekly_scenarios.jl): Mon 2024-07-01 .. Sun 2024-07-07, one 168-hour LP per weather scenario. In the CSP tab the gate selector switches between A: clear skies / B: mixed sun and cloud / C: full overcast to compare the hourly trends. Fully synthetic inputs (Spanish July price shape, demo-scale plant, physical leak 0.0005/h, persistence continuation value): the Price tab shows scenario B's synthetic day-ahead week; every other market section is a placeholder because this run never touched the market chain.",
+ "published": "2026-11-05T14:58:13",
+ "published_by": "publish_csp_weekly.py",
+ "first_day": "2024-07-01",
+ "last_day": "2024-07-07",
+ "n_days": 7,
+ "ac_solved": 168,
+ "ac_total": 168,
+ "months": [
+  "2024-07"
+ ],
+ "size_mb": 0.05,
+ "info": {
+  "ran_by": "CSP/csp_weekly_scenarios.jl",
+  "branch": "public_version",
+  "commit": "-",
+  "commit_message": "",
+  "uncommitted_files": [],
+  "started": "-",
+  "finished": "-",
+  "runtime_min": null,
+  "power_flow": "n/a (LP price taker)",
+  "linear_solver": "HiGHS",
+  "label": "synthetic week",
+  "reconstructed": false
+ },
+ "features": {
+  "res": "accepted",
+  "xb": false,
+  "gas": false,
+  "markup": false,
+  "hydro": false,
+  "chain": "day"
+ }
+}
