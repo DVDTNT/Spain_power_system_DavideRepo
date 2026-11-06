@@ -1,0 +1,797 @@
+{
+ "year": 2024,
+ "sites": [
+  {
+   "name": "Almaraz",
+   "f": "Nuclear",
+   "conf": "sure",
+   "x": -485.5,
+   "y": -4431.4,
+   "cap": 2093,
+   "rcap": 2022,
+   "model_units": [
+    "G0092",
+    "G0093"
+   ],
+   "entsoe": [
+    "ALMARAZ 1",
+    "ALMARAZ 2"
+   ]
+  },
+  {
+   "name": "Ascó",
+   "f": "Nuclear",
+   "conf": "sure",
+   "x": 48.8,
+   "y": -4586.9,
+   "cap": 2060,
+   "rcap": 2019,
+   "model_units": [
+    "G0138",
+    "G0139"
+   ],
+   "entsoe": [
+    "ASCO 1",
+    "ASCO 2"
+   ]
+  },
+  {
+   "name": "Cofrentes",
+   "f": "Nuclear",
+   "conf": "sure",
+   "x": -90.0,
+   "y": -4365.3,
+   "cap": 1102,
+   "rcap": 1087,
+   "model_units": [
+    "G0160"
+   ],
+   "entsoe": [
+    "COFRENTES"
+   ]
+  },
+  {
+   "name": "Trillo",
+   "f": "Nuclear",
+   "conf": "sure",
+   "x": -223.9,
+   "y": -4531.0,
+   "cap": 1066,
+   "rcap": 998,
+   "model_units": [
+    "G0307"
+   ],
+   "entsoe": [
+    "TRILLO"
+   ]
+  },
+  {
+   "name": "Vandellós",
+   "f": "Nuclear",
+   "conf": "sure",
+   "x": 74.5,
+   "y": -4560.4,
+   "cap": 1087,
+   "rcap": 1051,
+   "model_units": [
+    "G0285"
+   ],
+   "entsoe": [
+    "VANDELLOS"
+   ]
+  },
+  {
+   "name": "Aboño (coal)",
+   "f": "Coal",
+   "conf": "sure",
+   "x": -488.5,
+   "y": -4848.5,
+   "cap": 916,
+   "rcap": 774,
+   "model_units": [
+    "G0058",
+    "G0059"
+   ],
+   "entsoe": [
+    "ABO¿O 1",
+    "ABO¿O 2"
+   ]
+  },
+  {
+   "name": "Los Barrios (coal)",
+   "f": "Coal",
+   "conf": "sure",
+   "x": -462.7,
+   "y": -4028.6,
+   "cap": 589,
+   "rcap": 399,
+   "model_units": [
+    "G0109"
+   ],
+   "entsoe": [
+    "BARRIOS"
+   ]
+  },
+  {
+   "name": "Soto de Ribera 3 (coal)",
+   "f": "Coal",
+   "conf": "sure",
+   "x": -502.1,
+   "y": -4821.8,
+   "cap": 350,
+   "rcap": 299,
+   "model_units": [
+    "G0446"
+   ],
+   "entsoe": [
+    "SOTO RIB 3"
+   ]
+  },
+  {
+   "name": "Soto de Ribera 4–5 (gas)",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -502.1,
+   "y": -4821.8,
+   "cap": 854,
+   "rcap": 816,
+   "model_units": [
+    "G0447",
+    "G0448"
+   ],
+   "entsoe": [
+    "SRI4",
+    "SOTO 5"
+   ]
+  },
+  {
+   "name": "Aceca 3",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -329.1,
+   "y": -4446.7,
+   "cap": 386,
+   "rcap": 382,
+   "model_units": [
+    "G0385"
+   ],
+   "entsoe": [
+    "ACECA 3"
+   ]
+  },
+  {
+   "name": "Aceca 4",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -329.1,
+   "y": -4446.7,
+   "cap": 373,
+   "rcap": 376,
+   "model_units": [
+    "G0386"
+   ],
+   "entsoe": [
+    "ACECA4"
+   ]
+  },
+  {
+   "name": "Bahía de Algeciras",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -459.5,
+   "y": -4028.0,
+   "cap": 821,
+   "rcap": 776,
+   "model_units": [
+    "G0113"
+   ],
+   "entsoe": [
+    "ALG3TG1",
+    "ALG3TG2",
+    "ALG3TV1"
+   ]
+  },
+  {
+   "name": "Amorebieta",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -234.4,
+   "y": -4813.0,
+   "cap": 786,
+   "rcap": 790,
+   "model_units": [
+    "G0745"
+   ],
+   "entsoe": [
+    "AMBITG1",
+    "AMBITG2",
+    "AMBITV"
+   ]
+  },
+  {
+   "name": "Arcos de la Frontera",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -496.3,
+   "y": -4082.3,
+   "cap": 1585,
+   "rcap": 1566,
+   "model_units": [
+    "G0004",
+    "G0005",
+    "G0006"
+   ],
+   "entsoe": [
+    "ARCOS1",
+    "ARCOS2",
+    "ARC3TG1",
+    "ARC3TG2",
+    "ARC3TV"
+   ]
+  },
+  {
+   "name": "Bahía de Bizkaia",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -263.0,
+   "y": -4825.8,
+   "cap": 785,
+   "rcap": 791,
+   "model_units": [
+    "G0462"
+   ],
+   "entsoe": [
+    "BAHITG1",
+    "BAHITG2",
+    "BAHITV"
+   ]
+  },
+  {
+   "name": "Besós 3–5",
+   "f": "Gas",
+   "conf": "sure",
+   "x": 189.5,
+   "y": -4611.4,
+   "cap": 1671,
+   "rcap": 1579,
+   "model_units": [
+    "G0788",
+    "G0789",
+    "G0790"
+   ],
+   "entsoe": [
+    "BESOS 3",
+    "BESOS 4",
+    "BES5 TG1",
+    "BES5 TG2",
+    "BES5 TV"
+   ]
+  },
+  {
+   "name": "Campo de Gibraltar",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -459.5,
+   "y": -4028.0,
+   "cap": 781,
+   "rcap": 742,
+   "model_units": [
+    "G0114",
+    "G0115"
+   ],
+   "entsoe": [
+    "CAMPGIB1",
+    "CAMPGIB2"
+   ]
+  },
+  {
+   "name": "Escombreras valley (Cartagena, El Fangal, Escombreras 6)",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -80.9,
+   "y": -4182.1,
+   "cap": 3264,
+   "rcap": 3112,
+   "model_units": [
+    "G0255",
+    "G0256",
+    "G0257",
+    "G0258",
+    "G0259",
+    "G0261",
+    "G0262"
+   ],
+   "entsoe": [
+    "CARTAGENA1",
+    "CARTAGENA2",
+    "CARTAGENA3",
+    "ESCCC1",
+    "ESCCC2",
+    "ESCCC3",
+    "ESC6TG1",
+    "ESC6TG2",
+    "ESC6TV"
+   ]
+  },
+  {
+   "name": "Castejón",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -142.8,
+   "y": -4693.9,
+   "cap": 1222,
+   "rcap": 1217,
+   "model_units": [
+    "G0085",
+    "G0086",
+    "G0088"
+   ],
+   "entsoe": [
+    "CASTEJON 1",
+    "CASTEJON 2",
+    "CTJON3"
+   ]
+  },
+  {
+   "name": "Cristóbal Colón",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -592.1,
+   "y": -4143.0,
+   "cap": 391,
+   "rcap": 390,
+   "model_units": [
+    "G0373"
+   ],
+   "entsoe": [
+    "COLON 4"
+   ]
+  },
+  {
+   "name": "Castellón 3–4",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -0.2,
+   "y": -4448.1,
+   "cap": 1640,
+   "rcap": 1530,
+   "model_units": [
+    "G0168",
+    "G0169"
+   ],
+   "entsoe": [
+    "CTN3TG1",
+    "CTN3TG2",
+    "CTN3TV",
+    "CTN4TG1",
+    "CTN4TG2",
+    "CTN4TV"
+   ]
+  },
+  {
+   "name": "Castelnou",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -24.0,
+   "y": -4588.4,
+   "cap": 800,
+   "rcap": 381,
+   "model_units": [
+    "G0045"
+   ],
+   "entsoe": [
+    "CTNUTG1",
+    "CTNUTG2",
+    "CTNUTV"
+   ]
+  },
+  {
+   "name": "Escatrón 3",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -29.1,
+   "y": -4597.2,
+   "cap": 804,
+   "rcap": 783,
+   "model_units": [
+    "G0171"
+   ],
+   "entsoe": [
+    "ECT3TG1",
+    "ECT3TG2",
+    "ECT3TV1"
+   ]
+  },
+  {
+   "name": "Málaga",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -389.1,
+   "y": -4090.8,
+   "cap": 416,
+   "rcap": 403,
+   "model_units": [
+    "G0780"
+   ],
+   "entsoe": [
+    "MALA1"
+   ]
+  },
+  {
+   "name": "Palos",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -587.3,
+   "y": -4139.5,
+   "cap": 1167,
+   "rcap": 1100,
+   "model_units": [
+    "G0377",
+    "G0378",
+    "G0379"
+   ],
+   "entsoe": [
+    "PALOS1",
+    "PALOS 2",
+    "PALOS 3"
+   ]
+  },
+  {
+   "name": "Puerto de Barcelona",
+   "f": "Gas",
+   "conf": "sure",
+   "x": 179.2,
+   "y": -4602.2,
+   "cap": 866,
+   "rcap": 821,
+   "model_units": [
+    "G0412",
+    "G0413"
+   ],
+   "entsoe": [
+    "PBCN1",
+    "PBCN2"
+   ]
+  },
+  {
+   "name": "As Pontes (gas)",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -670.0,
+   "y": -4835.4,
+   "cap": 856,
+   "rcap": 761,
+   "model_units": [
+    "G0041"
+   ],
+   "entsoe": [
+    "PGR5TG1",
+    "PGR5TG2",
+    "PGR5TV"
+   ]
+  },
+  {
+   "name": "Plana del Vent",
+   "f": "Gas",
+   "conf": "probable",
+   "x": 74.5,
+   "y": -4560.4,
+   "cap": 834,
+   "rcap": 413,
+   "model_units": [
+    "G0284",
+    "G0286"
+   ],
+   "entsoe": [
+    "PVENT1",
+    "PdV2"
+   ]
+  },
+  {
+   "name": "San Roque 1",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -462.7,
+   "y": -4028.6,
+   "cap": 390,
+   "rcap": 372,
+   "model_units": [
+    "G0107"
+   ],
+   "entsoe": [
+    "S.ROQUE 1"
+   ]
+  },
+  {
+   "name": "San Roque 2",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -462.7,
+   "y": -4028.6,
+   "cap": 402,
+   "rcap": 388,
+   "model_units": [
+    "G0108"
+   ],
+   "entsoe": [
+    "S.ROQUE 2"
+   ]
+  },
+  {
+   "name": "Sagunto",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -20.9,
+   "y": -4413.6,
+   "cap": 1233,
+   "rcap": 1189,
+   "model_units": [
+    "G0065",
+    "G0066",
+    "G0067"
+   ],
+   "entsoe": [
+    "SAGU1",
+    "SAGU2",
+    "SAGU3"
+   ]
+  },
+  {
+   "name": "Santurce",
+   "f": "Gas",
+   "conf": "sure",
+   "x": -260.4,
+   "y": -4824.4,
+   "cap": 396,
+   "rcap": 376,
+   "model_units": [
+    "G0461"
+   ],
+   "entsoe": [
+    "SANTURCE 4"
+   ]
+  },
+  {
+   "name": "Sabón 3",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -724.9,
+   "y": -4823.4,
+   "cap": 391,
+   "rcap": 379,
+   "model_units": [
+    "G0334"
+   ],
+   "entsoe": [
+    "SBO3"
+   ]
+  },
+  {
+   "name": "Tarragona",
+   "f": "Gas",
+   "conf": "probable",
+   "x": 99.3,
+   "y": -4577.0,
+   "cap": 417,
+   "rcap": 329,
+   "model_units": [
+    "G0346"
+   ],
+   "entsoe": [
+    "TAPOWER"
+   ]
+  },
+  {
+   "name": "Arrúbal",
+   "f": "Gas",
+   "conf": "probable",
+   "x": -192.1,
+   "y": -4721.9,
+   "cap": 785,
+   "rcap": 752,
+   "model_units": [
+    "G0077",
+    "G0078"
+   ],
+   "entsoe": [
+    "UFARRU1",
+    "UFARRU2"
+   ]
+  },
+  {
+   "name": "La Muela (I + II, with Cortes)",
+   "f": "Hydro",
+   "conf": "probable",
+   "x": -78.9,
+   "y": -4369.4,
+   "cap": 2301,
+   "rcap": 1719,
+   "model_units": [
+    "G0155",
+    "G0281"
+   ],
+   "entsoe": [
+    "MUELA 1G",
+    "MUELA 2G",
+    "MUELA 3G",
+    "MUELA 4G",
+    "MUELA 5G",
+    "MUELA 6G",
+    "MUELA 7G",
+    "CORTES 1",
+    "CORTES 2"
+   ]
+  },
+  {
+   "name": "Sallente",
+   "f": "Hydro",
+   "conf": "sure",
+   "x": 84.6,
+   "y": -4731.8,
+   "cap": 667,
+   "rcap": 411,
+   "model_units": [
+    "G0656"
+   ],
+   "entsoe": [
+    "SALLENT 1G",
+    "SALLENT 2G",
+    "SALLENT 3G",
+    "SALLENT 4G"
+   ]
+  },
+  {
+   "name": "Alcántara (José M. Oriol)",
+   "f": "Hydro",
+   "conf": "sure",
+   "x": -586.5,
+   "y": -4422.1,
+   "cap": 1452,
+   "rcap": 928,
+   "model_units": [
+    "G0031"
+   ],
+   "entsoe": [
+    "JM.ORIOL 1",
+    "JM.ORIOL 2",
+    "JM.ORIOL 3",
+    "JM.ORIOL 4"
+   ]
+  },
+  {
+   "name": "Cedillo",
+   "f": "Hydro",
+   "conf": "sure",
+   "x": -642.3,
+   "y": -4415.4,
+   "cap": 758,
+   "rcap": 454,
+   "model_units": [
+    "G0057"
+   ],
+   "entsoe": [
+    "CEDILLO 1",
+    "CEDILLO 2",
+    "CEDILLO 3",
+    "CEDILLO 4"
+   ]
+  },
+  {
+   "name": "Villarino",
+   "f": "Hydro",
+   "conf": "sure",
+   "x": -553.3,
+   "y": -4592.4,
+   "cap": 1229,
+   "rcap": 840,
+   "model_units": [
+    "G0070"
+   ],
+   "entsoe": [
+    "VLLRINO 1G",
+    "VLLRINO 2G",
+    "VLLRINO 3G",
+    "VLLRINO 4G",
+    "VLLRINO 5G",
+    "VLLRINO 6G"
+   ]
+  },
+  {
+   "name": "Castro (Zamora)",
+   "f": "Hydro",
+   "conf": "probable",
+   "x": -527.8,
+   "y": -4628.0,
+   "cap": 171,
+   "rcap": 107,
+   "model_units": [
+    "G0602"
+   ],
+   "entsoe": [
+    "CASTRO II"
+   ]
+  },
+  {
+   "name": "Ricobayo",
+   "f": "Hydro",
+   "conf": "probable",
+   "x": -510.6,
+   "y": -4622.9,
+   "cap": 265,
+   "rcap": 148,
+   "model_units": [
+    "G0029"
+   ],
+   "entsoe": [
+    "RICOBA II1"
+   ]
+  },
+  {
+   "name": "Santo Estevo II",
+   "f": "Hydro",
+   "conf": "probable",
+   "x": -652.7,
+   "y": -4721.5,
+   "cap": 285,
+   "rcap": 298,
+   "model_units": [
+    "G0221"
+   ],
+   "entsoe": [
+    "S.EST IIG1"
+   ]
+  },
+  {
+   "name": "Bienvenida PV",
+   "f": "Solar",
+   "conf": "probable",
+   "x": -525.3,
+   "y": -4262.1,
+   "cap": 192,
+   "rcap": 152,
+   "model_units": [
+    "G0897"
+   ],
+   "entsoe": [
+    "BVNIDA1"
+   ]
+  },
+  {
+   "name": "Valdesolar PV",
+   "f": "Solar",
+   "conf": "probable",
+   "x": -536.2,
+   "y": -4317.0,
+   "cap": 303,
+   "rcap": 209,
+   "model_units": [
+    "G0607"
+   ],
+   "entsoe": [
+    "VALDESOLAR"
+   ]
+  }
+ ],
+ "coverage": {
+  "Nuclear": {
+   "matched": 7408,
+   "total": 7408
+  },
+  "Coal": {
+   "matched": 1855,
+   "total": 2900
+  },
+  "Gas": {
+   "matched": 24316,
+   "total": 28212
+  },
+  "Hydro": {
+   "matched": 7128,
+   "total": 20505
+  },
+  "Solar": {
+   "matched": 495,
+   "total": 33186
+  }
+ }
+}

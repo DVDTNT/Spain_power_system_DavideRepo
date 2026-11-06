@@ -2,6 +2,192 @@
 # Spain Power System — OPF configuration
 # ============================================================
 
+[scenario]
+# ── Scenario selector (shared by the midterm SDDP and the market chain) ─────
+# label = "2024" reproduces the original behaviour exactly (all 2024 inputs,
+# no file suffix).  Any other label activates the EMPIRE-based future system:
+#   • installed capacities per zone/tech   ← <empire_dir>/Output/genInstalledCap.tab
+#   • marginal costs                       ← <empire_dir>/Output/marginal_costs.csv
+#                                            + CO2 adder 3.6·content·price, with
+#                                            content from Input/Tab/Generator_CO2Content.tab
+#                                            and price the emission cap's shadow
+#                                            price (see [scenario].co2_price* below;
+#                                            EMPIRE ran against a cap, so its own
+#                                            costs carry no CO2 at all)
+#   • annual demand per zone               ← Input/Tab/Node_ElectricAnnualDemand.tab
+#   • cross-zone NTCs                      ← Output/transmissionInstalledCap.tab
+#   • pumped-hydro + Li-Ion BESS           ← Output/stor{PW,EN}InstalledCap.tab
+# All hourly shapes (EDF/EMPIRE weather years, Profile-Iberia, the ES/ES_old
+# forecast factors), the bus-level network topology and the reservoir
+# volumes/inflows stay at their 2024 sources.  The bus-level Spanish fleet is
+# scaled per technology by the EMPIRE growth ratio (installed cap at `period`
+# ÷ EMPIRE 2024 initial cap), so unit siting follows today's fleet.
+# Every output (Bellman cuts, volume trajectory, cut JSON, diagnostics) gets
+# the suffix "_<label>", and the market chain writes to results/<label>/ and
+# reads its Bellman inputs from the suffixed [midterm4] outputs automatically.
+label      = "Trinity"   # e.g. "NECP2035"
+empire_dir = "Data/2035/Trinity"   # EMPIRE run (Input/Tab + Output) - Ignore if label = "2024"
+period     = 2                            # EMPIRE period index: 2 = 2030-2035
+
+# How the EMPIRE expansion is disaggregated onto the bus-level grid
+# (empire_nodal.jl; diagnostics: julia --project=. empire_nodal.jl):
+#   "nodal" — NUTS3 resolution.  Per (NUTS3, tech) the unit fleet is scaled to
+#             EMPIRE's regional installed capacity (greenfield units are created
+#             on the region's highest-load buses where a tech is new to the
+#             region; hydro/nuclear are site-bound and never built greenfield).
+#             EMPIRE's intra-ES corridor capacities scale the crossing lines'
+#             ratings/impedances as parallel circuits, and brand-new corridors
+#             get a synthetic 400 kV line.  BESS is sited per NUTS3 node.
+#   "zonal" — original behaviour: one national growth ratio per tech, corridor
+#             investments ignored, BESS on the top-20 load buses.
+disaggregation = "nodal"
+
+# ── CO2 price ───────────────────────────────────────────────────────────────
+# EMPIRE solved these runs against an EMISSION CAP, so General_CO2Price.tab is
+# 0 for every period in all four scenarios and marginal_costs.csv carries no
+# carbon either.  Dispatching on that leaves ES coal (16.5 EUR/MWh) BELOW CCGT
+# (30.9) and inverts the merit order — the crossover sits at 22.8 (Go RES) to
+# 45.1 (Trinity) EUR/t.
+#
+# The scenario-consistent figure is the cap's shadow price, published per region
+# and year with the EnVis scenario set.  ES @ 2035:
+#     Go RES 1703.0 | NECPEssentials 368.0 | REPowerEU++ 314.8 | Trinity 63.1
+# These are marginal abatement costs under a deep-decarbonisation cap, NOT an
+# ETS forward price, so they run far above today's ~70 EUR/t.  Go RES in
+# particular prices CCGT at ~621 and coal at ~1339 EUR/MWh, i.e. both are out of
+# merit in essentially every hour — which is that scenario's whole point.
+#
+#   co2_price_file   — set to "" to fall back to General_CO2Price.tab (zeros)
+#   co2_price_region — "ES"; "Europe (average)" also available
+#   co2_price_year   — defaults to 2025 + 5*period, so period 2 -> 2035
+#   co2_price_model  — defaults to basename(empire_dir); matched case- and
+#                      punctuation-insensitively against "Model Version"
+#   co2_price        — an explicit number here overrides all of the above
+#                      (set 0.0 to restore the old no-carbon behaviour)
+co2_price_file   = "Data/EU-EnVis-2060_Annual_Regional_CO2_Prices_v1.2.0.csv"
+co2_price_region = "ES"
+
+# Negative-emission credit.  BioCCS has a NEGATIVE CO2 content (-0.1 tCO2/GJ_el),
+# so a positive carbon price gives it a negative marginal cost: -87 EUR/MWh in
+# NECPEssentials, -250 in REPowerEU++, -522 in Go RES.  ES BioCCS capacity is
+# 217 / 2 631 / 250 / 0 MW, so the choice only really moves Go RES.
+#   false — the removal credit is settled OUTSIDE the energy market (a separate
+#           CDR mechanism); the adder is floored at 0, BioCCS keeps its EMPIRE
+#           cost, and the clearing price is not dragged below zero by it.
+#   true  — the credit clears inside the market: BioCCS runs at Pmax always and
+#           sets a deeply negative price in any hour it is marginal.
+negative_co2_credit = false
+
+[costs]
+# ── Marginal-cost source for the market chain ───────────────────────────────
+# gas_from_midterm = true takes the ES gas marginal cost from
+# [midterm4.gas_cost] (CCGT 78.0, OCGT 105.0 EUR/MWh) instead of
+# Data/generation_cost_pypsa_2024.csv (CCGT 93.16, OCGT 124.87).
+#
+# Why this has to match: the Bellman water value the market chain imports is
+# produced BY the mid-term model, and its ES cut slopes sit at exactly 78.00 —
+# the mid-term's own gas cost, because Spanish water displaces Spanish gas.
+# Pricing gas at 93.16 in the day-ahead while valuing water at 78 hands
+# reservoir hydro a 15 EUR/MWh advantage that exists only in the seam between
+# the two models: the DA then runs reservoir hydro at 92 % of its 11 660 MW
+# nameplate around the clock (2 Dec 2024) and pushes CCGT off the stack.
+# It also unties CCGT from coal (94.01), which the near-tie at 93.16 had kept
+# permanently out of merit.
+# Applies to the 2024 case only — scenario runs price gas from EMPIRE's own
+# marginal_costs.csv plus the CO2 adder.
+# SUPERSEDED when [costs.gas_srmc].enabled = true, which prices gas from the
+# observed daily MIBGAS + EUA series on both sides of the seam instead.
+gas_from_midterm = true
+
+[costs.gas_srmc]
+# ── Gas marginal cost from the OBSERVED daily market prices ──────────────────
+# enabled = true supersedes both `gas_from_midterm` and the pypsa-2024 table for
+# the two Gas technologies, and computes instead
+#
+#   SRMC [EUR/MWh_el] = P_gas / eta  +  3.6 * co2_content * P_CO2  +  vom
+#
+# from Data/MIBGAS_Data_2024.csv (daily GDAES_D+1, EUR/MWh_th, 2024-2025) and
+# Data/Carbon Emissions Price.csv (EUA settlement, EUR/tCO2, business days).
+# The same series drives the mid-term model when [midterm4].gas_price_source =
+# "mibgas", so the water value and the day-ahead gas cost stay consistent — the
+# seam `gas_from_midterm` was papering over.
+#
+# Delivery-day convention: MIBGAS quotes GDAES_D+1 on trading day D for delivery
+# on D+1, so gas burned on day D is priced from the row dated D-1; the EUA leg
+# takes the last settlement on or before D-1, matching the information set the
+# day-ahead market clears on.  2024 study days:
+#     8 Jul : gas 32.09, EUA 70.35 -> CCGT  86.6, OCGT 113.7
+#     2 Dec : gas 50.79, EUA 68.40 -> CCGT 119.4, OCGT 156.8
+# against the fixed 78 / 105 previously used (OMIE cleared 73.2 and 143.2 mean).
+#
+# Parameters below come from the EMPIRE input tables — the only place in the
+# repo where they are recorded:
+#   eta          Generator_Efficiency.tab, period 1
+#   co2_content  Generator_CO2Content.tab   ** tCO2 per GJ of ELECTRICITY:
+#                the efficiency is ALREADY divided in.  Multiplying back by eta
+#                returns the textbook fuel factors for every fuel in that table
+#                (gas 0.0545, coal 0.0913, lignite 0.1077, oil 0.0740 tCO2/GJ),
+#                which is how we know.  Hence 3.6*content*price, NOT
+#                (3.6/eta)*content*price — see the note in fuel_prices.jl.
+#   vom          Generator_VariableOMCosts.tab
+# Applies to the 2024 path only; scenario runs keep EMPIRE's own marginal costs.
+enabled     = true
+mibgas_file = "Data/MIBGAS_Data_2024.csv"
+carbon_file = "Data/Carbon Emissions Price.csv"
+eta         = { ccgt = 0.5600044800358402, ocgt = 0.4250074376301585 }
+co2_content = { ccgt = 0.09735481800000001, ocgt = 0.128053746 }
+vom         = { ccgt = 4.68, ocgt = 5.76 }
+
+[weeks]
+# ── Sampled multi-week study horizon (2035 scenario target) ──────────────────
+# enabled = true replaces the two fixed 2024 TARGET_DAYS with n_weeks sampled
+# weeks: study weeks on the SDDP calendar ([bellman].bgn_date + 7-day slots, so
+# stage/cut/volume lookups are unchanged) fed by hourly weather drawn from the
+# EMPIRE ScenarioData climate years (week_sampling.jl).
+#
+#   n_weeks    — horizon length in weeks (2–3 is the target).
+#   contiguous — true: one random climate year + start slot, consecutive weeks
+#                and consecutive data rows (weather autocorrelation preserved);
+#                false: n independent (year, week) draws, distinct week slots.
+#   resample   — false: reuse key_file if present (drawn once, stable across
+#                runs and across the four EMPIRE scenarios for comparability);
+#                true: redraw every run and overwrite key_file.
+#   seed       — RNG seed for the draw; 0 = fresh entropy each (re)draw.
+#   key_file   — persisted sample key (slot, week_slot, climate_year,
+#                study_start, data_start, row_start), shared by all scenarios.
+#   xb_ntc_margin — fallback static symmetric margin, used only when
+#                [weeks.ntc].enabled=false.
+enabled    = false
+n_weeks    = 2
+contiguous = true
+resample   = false
+seed       = 0
+#   xb_hurdle_eur_mwh — small per-MWh hurdle on every corridor flow of the
+#                4-zone DA; breaks the exchange degeneracy when zonal prices
+#                tie (arbitrary gross wheeling otherwise lands on the border
+#                and defeats the AC redispatch).  Keep well below genuine
+#                zonal price spreads.
+key_file   = "Data/sample_weeks.csv"
+xb_ntc_margin = 0.65
+xb_hurdle_eur_mwh = 0.5
+
+[weeks.ntc]
+# Offline capacity calculation.  The Spanish DC network is used only before DA
+# to derive four asymmetric hourly scalar limits (FR→ES, ES→FR, PT→ES, ES→PT);
+# no branch/PTDF constraint enters the market-clearing model.
+#
+# Each hour starts from a zero-exchange DC reference dispatch.  Imports use a
+# fixed downward-headroom generation-shift key; exports and opposite-direction
+# transit use an optimised corrective-redispatch GSK.  The four directional
+# maxima are then coordinated until all ES-FR/ES-PT corners are feasible.
+# `reliability_margin` is applied after that calculation to cover forecast/model
+# error and unmodelled contingencies.  Existing `line_rating_factor` is already
+# applied to every branch and border rating.
+enabled = true
+reliability_margin = 0.80
+reuse = true
+cache_file = "hourly_ntc.csv"
+
 [network]
 # Operator-tunable network security limits applied when assembling the grid.
 #
@@ -15,43 +201,661 @@
 #                         N-1 / reliability margin.  Applies to AC lines,
 #                         transformers and HVDC links.  0.70 ⇒ 70 % of nameplate.
 voltage_band       = 0.05
-line_rating_factor = 0.70
+line_rating_factor = 0.8
+
+# Generator voltage regulation (AVR).  Synchronous-machine buses (and the slack)
+# are voltage-regulated, so hold them to a tighter band than the load buses — the
+# voltage profile then follows realistic AVR setpoints instead of the cost-/loss-
+# minimising OPF railing every bus up to vmax.  Renewable-only and load buses keep
+# voltage_band.  Set gen_bus_voltage_control = false to relax this (use
+# voltage_band everywhere).
+gen_bus_voltage_control = true
+gen_bus_vmin            = 0.98
+gen_bus_vmax            = 1.03
+
+[reactors]
+# Shunt reactors that absorb the reactive power generated by EHV line charging
+# (the π-model shunt susceptance of every AC line).  Without them the generators
+# are forced to soak up ~21 GVAr of charging and bus voltages ride at the upper
+# band.  The installed peninsular fleet is taken from REE's Boletín Mensual de
+# diciembre 2024 (400 kV: 11 750 MVAr; ≤220 kV: 3 722 MVAr) and disaggregated to
+# individual buses in proportion to the line charging connected at each bus.  The
+# per-bus result is cached in Data/reactors.csv (delete it to regenerate after a
+# line-data change); see the README "Shunt reactors" section.
+#
+#   enabled         — attach the reactor shunts to the AC network.
+#   in_service_pct  — percent of the installed fleet that is energised at the
+#                     operating point (a single knob, 0 = none, 100 = full
+#                     fleet; values >100 are allowed for sensitivity studies).
+enabled        = true
+in_service_pct = 100.0
+
+[load]
+# Net power factor the transmission grid sees at each load bus.  Distribution-
+# level PF correction is assumed already applied below the model boundary, so
+# this is the residual load PF the network must carry:
+#   qd = pd · tan(acos(power_factor)).
+#   1.0  ⇒ purely active load (lines carry only active power);
+#   0.98 ⇒ a small lagging reactive draw (more realistic);
+#   lower values draw more reactive from the grid (absorbs more line charging).
+power_factor = 0.98
+
+[generators]
+# Generator reactive capability.
+#   apparent_power_limit — enforce the MVA capability circle  P² + Q² ≤ S²  on
+#                          each unit (convex/SOC, Ipopt-safe).  Set to false to
+#                          RELAX it (falls back to the ±Pmax reactive box) if the
+#                          full model becomes too hard to solve.
+#   rated_power_factor   — synchronous units (thermal/hydro): MVA circle radius
+#                          S_rated = installed MVA / rated_power_factor.  0.90 is
+#                          a defensible value (±48 % reactive headroom at full P).
+#   renewable_power_factor — inverter-based Wind/Solar: reactive is capped to
+#                          |Q| ≤ tan(acos(pf))·P (tied to ACTUAL output, so a
+#                          derated farm cannot sit at a very low PF).  0.95 ≈ the
+#                          Spanish grid-code reactive requirement.
+apparent_power_limit   = true
+rated_power_factor     = 0.90
+renewable_power_factor = 0.95
 
 [bellman]
-# How to incorporate Bellman cuts into the hydro cost:
-#
-#   "constant"  — binding cut slope at V_ES_start used as a fixed marginal
-#                 cost (EUR/MWh) for reservoir hydro.  Each hour is solved
-#                 independently (fast, one water value per day).
-#
-#   "piecewise" — all cuts are added as constraints coupling all 24 hours
-#                 of a day in one optimisation.  The solver finds the optimal
-#                 intra-day hydro dispatch considering the full cost-to-go
-#                 function (slower, more accurate).
-#
-method = "constant"
-
+# Shared source of the long-term hydro cost-to-go (Bellman cuts produced by the
+# weekly scheduling model).  Both stages of the market chain read from here:
+#   • the day-ahead dispatch always uses the *full* cut set, coupling all 24
+#     hours so reservoir hydro is allocated against the cost-to-go;
+#   • the redispatch uses either the binding constant water value or the full
+#     cuts, selected by [redispatch].water_value.
 bgn_date     = "2024-07-02"          # start date of the long-term model
 ssv_step     = 168                   # stage length in hours (1 week)
-bellman_file = "Data/BellmanValuesOUT.csv"
-volume_file  = "Data/Volume_Scen0_OUT.csv"
+# In-house 4-node SDDP ([midterm4], midterm_sddp4.jl) rather than the external
+# SMS++ output.  The SMS++ trajectory (BellmanValuesOUT.csv /
+# Volume_Scen0_OUT.csv) drains the Spanish reservoir to ~0 by autumn and holds
+# it there — on 2 Dec 2024 it leaves V_ES = 33 914 MWh, which capped that day's
+# reservoir output at 34 GWh and pushed the shortfall onto CCGT.  The SDDP runs
+# carry the end-of-horizon target ([midterm4].end_fill/end_penalty), so the
+# reservoir returns to its starting volume instead of emptying: V_ES on
+# 2 Dec 2024 is 7.47 TWh and the horizon minimum is 4.75 TWh.
+bellman_file = "Data/BellmanValuesOUT_sddp4.csv"
+volume_file  = "Data/Volume_Scen0_OUT_sddp4.csv"
+
+# ── Daily reservoir energy budget ───────────────────────────────────────────
+# The Bellman cuts price water but do not BIND a single day: a study day draws
+# ~1 % of the Spanish reservoir, and the cuts are almost flat over that range
+# (the water value moved only 78.02 → 77.45 EUR/MWh between 5.1 and 7.5 TWh).
+# Left to the cuts alone the day-ahead turbines reservoir hydro to its nameplate
+# in every hour whose water value undercuts gas — 92 % of 11 660 MW around the
+# clock on 2 Dec 2024, against ~150 GWh/day actually scheduled by the mid-term
+# model.  So the mid-term model's own release decision is carried down as an
+# energy cap on the day's reservoir output (a cap, not a target: the day may
+# still use less if water is not economic).
+#   turbine_file  — hourly turbine schedule written by midterm_sddp4.jl.
+#   hydro_budget  — false ⇒ cuts only (the previous, unbounded behaviour).
+#   hydro_budget_basis — "week" (default): the mid-term model's weekly release
+#     shared evenly over its 7 days.  Its shaping WITHIN a week carries little
+#     information for one day — the literal 2024-07-08 slice is 0 MWh in a week
+#     that releases 268 GWh — and the day-ahead has the hourly demand/VRE detail
+#     to shape the day itself.  "day" uses the literal 24-hour slice instead.
+turbine_file = "Data/TurbineSchedule_sddp4.csv"
+hydro_budget = true
+hydro_budget_basis = "week"
+
+[da]
+# ── Stage 1: Day-Ahead market ────────────────────────────────────────────────
+# A copper-plate economic dispatch solving all 24 hours of the day at once.
+# There are NO transmission or voltage limits — the DA market clears energy
+# only, leaving network congestion to be resolved by the redispatch stage.
+# Reservoir hydro is coupled across the day through the full Bellman cost-to-go
+# (the binding cut supplies its opportunity cost), so the intra-day hydro
+# schedule respects the long-term water value.  Cross-border exchange enters as
+# a fixed import (see [crossborder]).  Uses the DA forecast for wind, solar and
+# load: ES_old col "-12" × DA scale factor (always 1.0).
+enabled = true
+# Nuclear must-run floor: minimum stable generation as a fraction of available
+# Pmax, so baseload nuclear cannot be backed off at the solar peak (it holds
+# >= this level all day and RES is curtailed instead).  0.0 = no floor (old
+# behaviour, nuclear free to shut down).  The DA sets the profile; the intraday
+# gates and redispatch freeze nuclear at that DA value.
+nuclear_min_gen_frac = 0.8
+
+# Nuclear availability: the fraction of nameplate actually available on the
+# study day, covering planned refuelling outages and forced outages.  Applied to
+# Pmax, so nuclear_min_gen_frac stays a floor on what is *available* rather than
+# on the nameplate.  Before this existed the fleet was implicitly 100 % available
+# every day, which put 7 408 MW on the bar around the clock.
+#   nuclear_availability          — default for any day not listed below.
+#   [da.nuclear_availability_by_date] — per-day override.  The two 2024 study
+#     days sat at very different fleet availability (8 Jul ≈ 93 %, 2 Dec ≈ 69 %
+#     of the 7 408 MW nameplate, from the OMIE cleared programme), so a single
+#     annual factor cannot match both.
+nuclear_availability = 0.85
+
+# ── Coal availability ───────────────────────────────────────────────────────
+# Same mechanism as nuclear, and needed for the same reason: generations.csv
+# still carries the full 2 900 MW nameplate of a fleet that had largely closed
+# by 2024, and unlike nuclear it had no derating at all.
+#
+# It only became visible once [costs.gas_srmc] priced gas from the observed
+# daily market.  With gas at the flat 78 it sat below coal's 94.01 and coal
+# never cleared; on 2 Dec 2024 the real gas cost is 119.4, coal goes into merit,
+# and the undated model ran the whole 2 900 MW flat out — 69.6 GWh against
+# 14.9 GWh actually cleared.  The coal PRICE is not the problem: 94.01 implies
+# 15.6-16.2 EUR/MWh_th at that day's EUA, which matches the market.
+#
+# The figures are read off the observed profile the same way the nuclear ones
+# are (OMIE cleared programme vs the 2 900 MW nameplate).  On 2 Dec coal was in
+# merit and cycled 413 -> 933 MW, tracking load, with 413/933 = 0.44 sitting
+# right on the 37.5 % technical minimum in Data/power_unit_tech_params.csv — so
+# 933 MW is what was actually available, not what was economic:
+#     2 Dec : 933 MW (OMIE) / 1 024 MW (ENTSO-E) of 2 900  ->  0.32
+#     8 Jul : coal out of merit (gas 86.6 < coal 94.0); ENTSO-E metered a
+#             446 MW peak  ->  0.15.  Non-binding, recorded for completeness.
+#
+# CAVEAT: this sets the CEILING, and the copper-plate LP has no unit commitment,
+# so coal runs flat at the ceiling instead of cycling to its technical minimum.
+# Expect ~22 GWh on 2 Dec against the real 14.9 — far better than 69.6, but the
+# residual needs min-load/commitment, not a smaller availability figure.  Do not
+# tune this down to reproduce the daily energy; that would trade a physical
+# quantity for a fitted one.
+coal_availability = 0.35
+
+# ── Thermal ramp limits ─────────────────────────────────────────────────────
+# Bound the hour-to-hour change of every thermal unit by its sustained ramp
+# rate, read from Data/power_unit_tech_params.csv as a percent of NAMEPLATE per
+# hour and applied per unit:
+#   Nuclear 20 | Hard Coal 40 | Gas CC 50 | Gas OCGT 100 | Oil 40  [%/h]
+# Technologies absent from that file (hydro, wind, solar, biomass, the [chp]
+# blocks) stay free: hydro and inverter-based plant ramp faster than the hourly
+# resolution resolves, and the CHP blocks are already pinned between their
+# technical minimum and their block size.
+# Applies to every copper-plate gate (DA, ID2, ID3, the rolling CID gates,
+# balancing) because they share solve_da.  Hour 0 is unconstrained — the DA has
+# no predecessor day, and consecutive study days are not coupled.
+ramp_limits = true
+
+[da.nuclear_availability_by_date]
+"2024-07-08" = 0.93
+"2024-12-02" = 0.69
+
+# Per-day coal availability (see [da].coal_availability above for the derivation).
+[da.coal_availability_by_date]
+"2024-07-08" = 0.15
+"2024-12-02" = 0.32
+
+[chp]
+# ── Industrial cogeneration / waste / mini-hydro ─────────────────────────────
+# OMIE clears this fleet as a single market group, "Cogeneración / Residuos /
+# Mini hidráulica" (3.4 GWh/h on 8 Jul, 3.9 on 2 Dec).  generations.csv has no
+# equivalent at all — 493 MW of Biomass — so without this block the model has to
+# cover ~3.5 GW of real supply with CCGTs, which is most of its CCGT error.
+#
+# Sizing comes from splitting the OMIE group against ENTSO-E's fuel-based
+# metering on the two study days (see Paper section 5.1):
+#   gas CHP   = ENTSO-E Fossil Gas − OMIE cleared CCGT   → 54 / 70 GWh/day
+#   waste     = ENTSO-E Biomass + Waste                  → 17.6 / 15.5 GWh/day
+#   minihydro = ENTSO-E Hydro(+pump) − OMIE Hydropower   → 10.1 / 8.3 GWh/day
+# Divided by 24 h these give the MW blocks below.  The mini-hydro figure is an
+# upper bound: that residual also absorbs intraday hydro adjustment, which is
+# why it comes out (implausibly) larger in July than in December.
+enabled = true
+
+# National block sizes [MW] for any day without a [chp.by_date] entry.
+gas_mw       = 2600.0
+waste_mw     =  700.0
+minihydro_mw =  400.0
+
+# Offer price of the gas CHP block [EUR/MWh].  NOT its fuel cost: the host
+# process buys the steam, so most of the gas is charged to heat rather than to
+# electricity, and RECORE support lowers the break-even pool price further.
+# Calibrated from the July data — the block held 3 115 MW at a pool price of
+# 32 EUR/MWh, so its offer must sit below that; there is no 2024 study-day
+# observation below 32, hence the round 22.  The unit still carries fuel = "Gas"
+# so emissions accounting is unaffected by the low offer price.
+gas_cost_eur_mwh = 22.0
+# Technical minimum as a fraction of the block, set by the process steam demand
+# that cannot be interrupted.  From the observed July trough: the group fell to
+# 3 110 MW against a 3 410 MW mean, i.e. the gas part fell to ~0.86 of its mean.
+gas_min_frac = 0.86
+
+# Waste-to-energy, biomass and mini-hydro run on ~zero marginal cost and show no
+# price response at all in the OMIE data (flat within ±10 % across a 3x price
+# swing), so they are near-must-run.
+waste_cost_eur_mwh     = 0.0
+waste_min_frac         = 0.90
+minihydro_cost_eur_mwh = 0.0
+minihydro_min_frac     = 0.90
+
+# Siting: spread each block over this many largest demand buses, weighted by
+# demand.  Irrelevant to the copper-plate market stages; it decides where the
+# AC redispatch sees the injection.  Industrial CHP sits at industrial sites,
+# so concentrating beats spreading over all 1 057 load buses.
+siting_buses = 100
+
+# Per-day block sizes [MW], overriding the defaults above.
+[chp.by_date."2024-07-08"]
+gas_mw       = 2260.0
+waste_mw     =  730.0
+minihydro_mw =  420.0
+
+[chp.by_date."2024-12-02"]
+gas_mw       = 2920.0
+waste_mw     =  650.0
+minihydro_mw =  350.0
+
+[id2]
+# ── Stage 2: Intraday market — second gate ───────────────────────────────────
+# Same copper-plate formulation as DA.  Uses ES_old col "-12" scaled by the ID2
+# factor from the new probabilistic files.  Nuclear units are frozen at their
+# DA dispatch for this and all subsequent stages.  (ID1 / first intraday gate
+# is not modelled.)
+enabled = true
+
+[id3]
+# ── Stage 3: Intraday market — third gate ────────────────────────────────────
+# Closes 10:00 on the delivery day and trades ONLY the last 12 delivery hours
+# (12–23), scaled by the ID3 factor.  Hours 0–11 are not retradeable here and
+# keep their ID2 schedule; their reservoir use is locked, so ID3 only reallocates
+# the remaining water across hours 12–23 against the Bellman cost-to-go.  Nuclear
+# units remain frozen at their DA dispatch.  Requires [id2].enabled = true.
+enabled = true
+
+[cid]
+# ── Stage 4: Continuous Intraday market ──────────────────────────────────────
+# Modelled as auction gates closing one hour before each delivery hour.  For each
+# hour we re-clear the remaining horizon with all earlier hours frozen at their
+# committed CID value, then commit this hour (24 rolling solves/day).  Earlier
+# hours' reservoir use is locked, so water cannot be reallocated backwards in
+# time.  Uses the CID-scaled profiles; the committed schedule anchors the
+# redispatch.  For the first 12 hours its predecessor is ID2 (no ID3 there).
+enabled = true
+
+[balancing]
+# ── Stage 5: Balancing market ────────────────────────────────────────────────
+# Final adjustment market, cleared after the continuous intraday and just before
+# the network redispatch.  Same copper-plate formulation as the intraday gates:
+# all 24 hours are tradable and anchored to the CID schedule with minimum
+# movement (cost-optimal first, then least deviation), so it only adjusts the
+# dispatch to cover the balancing forecast update.  Probabilistic load/solar/wind
+# changes are read from the "BE" column of the new ES files (ES_old col "-12" ×
+# BE factor).  Nuclear stays frozen at its DA dispatch.  The cleared balancing
+# schedule — and the BE profiles — anchor the redispatch.  Requires [da].enabled.
+enabled = true
 
 [crossborder]
 # Fix the market-cleared FR/PT import/export schedule at the border buses.
 # Reads Data/crossborder.csv and injects each country's net exchange as a
 # costless fixed generator at the foreign terminal buses (disaggregated
 # proportionally to line thermal ratings).
+# Weeks mode: must be off — crossborder.csv only covers the 2024 study days;
+# sampled-week exchange arrives with the 4-zone DA clearing.
 enabled = true
 
+# ── Where the EXPORT sits ───────────────────────────────────────────────────
+# THE EXPORT IS ALREADY INSIDE THE ES LOAD SERIES — it must be RELOCATED, never
+# added.  Evidence: Data/OMIE/actual_generation_*.csv balances its generation
+# columns plus the FR import column against EXACTLY the load series this model
+# uses (Data/ES_old/load, col "-12"), to 0.0 GWh, in all 48 study hours, with no
+# Portugal term anywhere.  Adding the export on top instead BREAKS that balance:
+# it puts 59-60 GWh/day of demand into the day-ahead that does not exist, and
+# every MWh of it lands on CCGT (8 Jul: 2.7 -> 60.6 GWh against 0.4 GWh actually
+# cleared by OMIE).  See docs/method_export_relocation.md.
+#
+# What is still wrong with `false` is purely SPATIAL.  The export energy is
+# spread over the 1 227 Spanish load buses in proportion to demand, so it is
+# consumed in Madrid/Barcelona/Valencia instead of leaving through the border:
+# in the AC redispatch the PT border lines carry 5-10 MW against a real 692-3 899
+# MW export, and the FR border lines carry exactly 0 MW in the six hours of
+# 8 July when Spain was exporting to France.
+#
+# false — legacy behaviour: hours with a net export are dropped entirely, so the
+#   FR/PT terminal buses are idle (no load, no generation) in those hours.
+# true  — the export MW is SUBTRACTED from the load distributed over the Spanish
+#   buses and placed as a fixed WITHDRAWAL (pmin = pmax < 0) at the FR/PT
+#   terminal buses, split by line thermal rating.  Total load is unchanged, so
+#   the copper-plate market gates (DA/ID2/ID3/CID/BAL) clear IDENTICALLY; only
+#   the AC redispatch, which is the one stage that cares where power leaves the
+#   country, sees a difference.  Also keeps the XB generator keys stable across
+#   a border that flips sign in-day.
+#
+# Weeks mode is unaffected: there the ES demand comes from EMPIRE ScenarioData
+# and does NOT contain the exchange, so the 4-zone DA's cleared export is a
+# genuine addition and is always modelled.
+export_at_border = true
+
+# ── Where the schedule comes from ───────────────────────────────────────────
+# "observed" — Data/crossborder.csv, the settled 2024 exchange of the two study
+#   days.  Exogenous to the model but consistent with the day being reproduced.
+# "sddp"     — the mid-term model's OWN cleared exchange, from the hourly
+#   Data/ExchangeSchedule_sddp4.csv that midterm_sddp4.jl writes next to the
+#   turbine schedule.  This closes the seam where the mid-term optimises
+#   exchange within NTC and the DA then overwrites it with observed values.
+#   BUT: the mid-term clears against EMPIRE/EDF climate-year weather rather than
+#   the actual weather of a 2024 calendar day, and its ES-FR flow sits ON the
+#   2 800 MW NTC bound in ~90 % of blocks (zonal LP with no hurdle cost).  On
+#   2 Dec 2024 it exports ~2.2-2.7 GW to France where the real day imported
+#   ~1.9-2.7 GW — the sign is inverted.  Use it for a self-consistent
+#   mid-term -> DA chain, NOT for reproducing a historical day.
+source = "observed"
+
+# ── Stage 2: Redispatch ──────────────────────────────────────────────────────
 [redispatch]
-# Anchor the AC OPF to the continuous intraday market schedule so it behaves
-# as a *redispatch* (minimum deviation from the cleared dispatch) instead of a
-# from-scratch cost-minimisation.  Adds  weight * Σ (P_g − P_market_g)²  [in MW²]
-# to the objective for every conventional unit, breaking the zero-cost hydro
-# degeneracy and keeping units at their market point unless the network forces
-# a change.  Per-unit schedule is read from Data/smspp_out/nutsx (SMS++ output).
-#   anchor_to_market = false → original cost-minimising behaviour.
-#   anchor_weight       EUR per MW²·h.  Larger ⇒ closer to the market schedule;
-#                       smaller ⇒ cheaper redispatch allowed.  Tune per results.
-anchor_to_market = true
-anchor_weight    = 0.1
+# Make the CID schedule network-feasible with a full AC OPF anchored to the
+# CID dispatch.  Units in frozen_fuels are pinned at their CID set-point
+# (pmin = pmax); every other unit (by default: Gas, Oil, reservoir & run-of-
+# river hydro, pumped hydro, Li-Ion BESS within ±rated power, plus curtailable
+# Wind and Solar) is free to be re-dispatched around its anchored market
+# schedule.
+#   enabled = false → run the day-ahead stage only.
+# The CHP / waste / mini-hydro blocks are frozen at their cleared set-point too:
+# cogeneration follows process heat and mini-hydro follows the river, so neither
+# offers redispatch.
+enabled = true
+
+# Which technologies are pinned (pmin = pmax = P_DA) at this stage instead of
+# being freely re-dispatchable.  A bare fuel name freezes every technology
+# under it; "Fuel:technology" freezes only that one (Hydro splits into
+# reservoir / pumped_storage / run_of_river — see generations.csv).
+#   Nuclear, Biomass, Coal — no redispatch flexibility offered in practice.
+# Run-of-river hydro is NOT frozen by default: an EMPIRE 2035 scenario can
+# inflate an existing run-of-river unit's nameplate several-fold (it is
+# site-bound, so the nodal disaggregation has nowhere else to put a region's
+# growth — see empire_nodal.jl), and pinning that inflated MW makes the local
+# network infeasible with no way to relieve it. Add "Hydro:run_of_river" here
+# to restore the old fully-frozen behaviour once the grid can actually carry it.
+frozen_fuels = ["Nuclear", "Biomass", "Coal"]
+
+# ── Manual, targeted line reinforcement ─────────────────────────────────────
+# A CSV (columns: line_id,factor) naming individual branches — AC lines,
+# transformers ("TR_…") or HVDC links — to uprate, so a study can relieve a few
+# corridors without moving the blanket `line_rating_factor` for the other ~2 300.
+# Produced by the workflow in docs/method_grid_reinforcement_identification.md:
+# probe at a high, uncongested line_rating_factor, back out each branch's
+# req_factor from its peak loading, keep the ones above the target operating
+# factor.
+#
+# `factor` is the branch's required ABSOLUTE rating as a fraction of NOMINAL
+# (i.e. the req_factor itself: 1.4 = needs 140 % of nameplate), independent of
+# the current derate — run_market_chain.jl divides by line_rating_factor to get the
+# multiplier the model applies.
+#
+# Modelled as a THERMAL UPRATE (reconductoring): only rate_a moves. This is
+# deliberately NOT the parallel-circuit model EMPIRE's own corridor investment
+# uses, which would also multiply the branch's shunt charging and divide its
+# reactance — on an AC solve that injects a large amount of extra reactive
+# power and redraws the flow pattern, so raising the factors made the reactive
+# balance worse instead of relieving the overload.
+#   "" (default) — no manual override.
+# Set this to a reinforcement.csv produced by scripts/run_reinforcement.sh to
+# apply a derived reinforcement list.  Data/trinity_line_reinforcement_gt0.8.csv
+# is the list derived FOR TRINITY -- it is not valid for another scenario.
+extra_line_scale_file = ""
+
+# Network model used to make the anchored schedule feasible:
+#   "AC" — full nonlinear AC OPF (Ipopt): bus voltages, reactive power and the
+#          apparent-power (MVA) thermal / generator-capability limits are all
+#          enforced.  This is the reactive-realism path.
+#   "DC" — linear DC OPF: active power and bus angles only.  Voltages and
+#          reactive power are not modelled, thermal limits act on the active
+#          (MW) flow, and the [network].voltage_band, [reactors], [load] and
+#          [generators] reactive knobs have no effect.  Much faster and feasible
+#          in cases where the AC problem is not, at the cost of reactive/voltage
+#          security.  Being linear (LP/convex QP with the quadratic anchor), it
+#          is solved exactly with Gurobi instead of Ipopt.
+power_flow = "AC"
+
+# Reservoir hydro opportunity cost during redispatch:
+#   "constant"  — binding cut slope at V_ES_start used as a fixed marginal cost
+#                 (EUR/MWh); each hour solved independently (fast).
+#   "piecewise" — full Bellman cuts coupling all 24 hours in one AC OPF (slow,
+#                 mirrors the DA hydro treatment).
+water_value = "constant"
+
+# How the redispatch is allowed to deviate from the DA schedule:
+#   "quadratic"     — min  base_cost + anchor_weight · Σ (P_g − P_DA_g)²  [MW²].
+#                     Larger anchor_weight ⇒ closer to DA; smaller ⇒ cheaper
+#                     redispatch allowed.  Simple, well-conditioned (default).
+#   "cost_weighted" — min  Σ c_g · (Δup_g + Δdown_g),  P_g = P_DA_g + Δup − Δdown.
+#                     Minimises the real cost of redispatch; reservoir Δ priced
+#                     at the water value.
+objective     = "quadratic"
+anchor_weight = 0.8
+
+# Run the network load flow (this redispatch stage) on its own, reusing the
+# market schedule from a PREVIOUS run instead of clearing stages 1–5 again.
+#   ""    — run the full chain (day-ahead → … → balancing → redispatch).
+#   "BAL" — skip the market stages and anchor the load flow to the saved
+#           results/<label>/bal_dispatch.csv; likewise "CID"/"ID3"/"ID2"/"DA".
+# The Bellman water value is recomputed each run (cheap, clearing-independent).
+# The saved *_dispatch.csv it reads are left untouched; only the redispatch
+# outputs (summary/gen_dispatch/branch_flows/fuel_mix/bus_voltages) are rewritten.
+from_saved = ""
+
+# Restrict the load flow to a single delivery hour (or a single day).
+#   ""             — every hour of every target day.
+#   "2024-07-08 14" — only 14:00 on 2024-07-08 (needs water_value = "constant").
+#   "2024-07-08"    — all 24 hours of that day only.
+# Pins TARGET_DAYS too, so the market stages / Bellman pre-compute skip the
+# other day. NOTE: a single-hour run rewrites the redispatch output CSVs with
+# just that hour — copy them off first if you need the full-day results.
+only = ""
+
+[midterm]
+# ── Mid-term hydro scheduling (in-house Bellman cuts via SDDP) ───────────────
+# A 3-zone (FR/ES/PT) weekly hydro-thermal SDDP that computes the Bellman cuts
+# itself from Data/smspp_in + Data/ts, replacing the SMS++ output.  Missing
+# FR/PT time series are synthesised from the ES shapes rescaled to each unit's
+# annual Energy/Capacity.  Run with:  julia --project=. midterm_sddp.jl
+# To use its cuts in the market chain, point [bellman].bellman_file and
+# volume_file at the two outputs below.
+n_stages    = 78         # weekly stages → Timestep 0..77 in the cut file
+block_hours = 2          # within-week time step [h]; must divide 24
+iterations  = 150        # SDDP training iterations
+voll        = 3000.0     # unserved-energy penalty [EUR/MWh]
+end_fill    = 1.0        # see [midterm4] below — same meaning
+end_penalty = 150.0
+solver      = "gurobi"   # "gurobi" | "highs"
+sim_year    = 1982       # climate year for the Volume_Scen0 trajectory
+year_stride = 1          # use every k-th climate year (1 = all 37 scenarios)
+seed        = 1234
+cuts_out    = "Data/BellmanValuesOUT_sddp.csv"
+volume_out  = "Data/Volume_Scen0_OUT_sddp.csv"
+
+[midterm4]
+# ── Mid-term hydro scheduling, 4-node 2024 system (in-house SDDP) ────────────
+# ES / PT / FR / EU (rest of Europe) on the real ~2024 system: capacities from
+# Data/Generation.csv, NTCs from Data/Transmission.csv, pumped storage from
+# Data/Storage.csv, costs from Data/generation_cost_pypsa_2024.csv, and hourly
+# EMPIRE series (Data/ts/EMPIRE, 2015–2019 = 5 joint weather scenarios).
+# 3 reservoir states (ES, FR, EU); PT turbines a weekly inflow budget.
+# Run with:  julia --project=. midterm_sddp4.jl   ("resim" arg → diagnostics)
+n_stages    = 78         # weekly stages → Timestep 0..77 in the cut file
+block_hours = 2          # within-week time step [h]; must divide 24
+iterations  = 60         # SDDP iterations per run (use "cont" arg to add more)
+voll        = 3000.0     # unserved-energy penalty [EUR/MWh]
+# ── End-of-horizon reservoir target ─────────────────────────────────────────
+# SDDP gives the last stage a zero value function, so water is worth nothing
+# after stage 78 and the policy empties every reservoir into the horizon end.
+# The last stage instead has to reach end_fill × (initial volume) per reservoir
+# or pay end_penalty for each missing MWh — a soft target, so a dry final week
+# stays feasible.  Expressed against v0 rather than vmax so each zone inherits
+# its own starting fill (ES from SS_SeasonalStorage, FR/EU from .reservoir).
+#   end_fill    — 1.0 ends the horizon at the starting volume.  The horizon is
+#                 78 weeks = 1.5 years (2 Jul 2024 → 30 Dec 2025), so start and
+#                 end sit in different seasons; lower it if the late-December
+#                 target should be below the early-July level.
+#   end_penalty — terminal water value [EUR/MWh].  150 sits above mid-merit
+#                 CCGT (~60–100) so the policy refills rather than burning gas
+#                 in the final weeks, and far below voll so it never buys water
+#                 with load shedding.  0 disables the target entirely.
+end_fill    = 1.0
+end_penalty = 150.0
+solver      = "gurobi"   # "gurobi" | "highs"
+sim_year    = 1982       # EDF climate year for the exported volume trajectory
+seed        = 1234
+cuts_out    = "Data/BellmanValuesOUT_sddp4.csv"
+volume_out  = "Data/Volume_Scen0_OUT_sddp4.csv"
+# Hourly reservoir turbine schedule (ES/FR/EU, MW) from the simulated policy.
+# The market chain integrates the ES column over each study day to get that
+# day's reservoir energy budget — see [bellman].turbine_file.
+turbine_out = "Data/TurbineSchedule_sddp4.csv"
+
+# ── Spanish seasonal-inflow dataset ─────────────────────────────────────────
+# The two available sources disagree on both level and seasonality, and the
+# seasonality decides whether the policy releases any water in summer:
+#
+#             Jun   Jul   Aug   Sep  |  Jun-Sep   annual
+#   edf       5.3%  3.0%  1.5%  2.2% |   12.0%    27.08 TWh/yr
+#   empire    7.4%  7.8%  5.0%  5.3% |   25.5%    21.86 TWh/yr
+#
+#   "edf"           — SS_SeasonalStorage Inflows x the EDF weekly coefficient
+#                     (39 climate years).  Spain's summer is near-dry, so a
+#                     reservoir starting 30 % full releases NOTHING from July to
+#                     late October and the market chain gets zero reservoir
+#                     hydro on 8 July 2024 (against ~74 GWh actually generated).
+#   "empire"        — Data/ts/EMPIRE/hydroseasonal.csv, summed over the 18 ES
+#                     NUTS3 columns (5 climate years, 2015-2019), used as-is.
+#                     Changes seasonality AND drops the annual total by 19 %.
+#   "empire_scaled" — EMPIRE's seasonality rescaled to the SS_SeasonalStorage
+#                     annual total, so the shape can be tested on its own.
+es_inflow_source = "empire_scaled"
+
+# ── Gas cost of the Iberian fleet ───────────────────────────────────────────
+# "config" — the flat [midterm4.gas_cost] figures (ES/PT CCGT 78, OCGT 105).
+# "mibgas" — the weekly mean of the OBSERVED daily short-run marginal cost from
+#   [costs.gas_srmc] (MIBGAS + EUA).  Over the 78 stages this runs 82.6 to 128.8
+#   EUR/MWh (mean 96.4) against the flat 78, and it is SEASONAL: the 2024 gas
+#   price nearly doubles from February (25.3) to December (46.3 EUR/MWh_th).
+#
+# Why this matters more than it looks: the water value IS the gas cost in this
+# model, because Spanish reservoir hydro displaces Spanish CCGT — the ES cut
+# slopes sit at exactly the ES gas figure.  With a flat cost the water value is
+# flat too (76.68 in July vs 73.60 in December — i.e. water is worth LESS in
+# winter, which is backwards).  A seasonal gas price makes winter water dearer,
+# so the policy saves it, which is the actual driver of seasonal reservoir
+# management and something the flat model cannot represent at all.
+#
+# FR/EU keep their config values: they buy on TTF, not MIBGAS.  The ES [chp]
+# blocks are excluded — their offer price is a calibrated bid, not a fuel cost.
+#
+# CAVEAT: this is a DETERMINISTIC seasonal path, so the policy has perfect
+# foresight of the 2024-25 gas market.  Declare it when reporting.  Modelling
+# gas as a stochastic autocorrelated process would need it as a STATE variable,
+# taking the value function from 3 to 4 dimensions.
+gas_price_source = "mibgas"
+
+[midterm4.reservoir]
+# Seasonal reservoir sizes (public data): FR ≈ French lakes; EU ≈ Norway 87 +
+# Sweden 34 + Alps/Italy ≈ 24 TWh.  fill0 = fraction full at the July start.
+vmax_twh = { FR = 3.6, EU = 145.0 }   # ES comes from SS_SeasonalStorage.csv
+fill0    = { FR = 0.65, EU = 0.65 }
+
+[midterm4.availability]
+# Mean availability (maintenance + forced outages) applied to thermal capacity.
+# Nuclear 0.90 is the non-French fleets (Nordics/BE/CZ/CH ran ~85-92 % in 2024);
+# the French fleet is overridden per zone below.  Conventional thermal ~90 %.
+Nuclear    = 0.90
+Coal       = 0.90
+Lignite    = 0.90
+"Gas CCGT" = 0.90
+"Gas OCGT" = 0.95
+Oil        = 0.90
+Bio        = 0.85
+Waste      = 0.85
+Geo        = 0.90
+
+[midterm4.availability.FR]
+# Zone override: French nuclear ran at ~70 % CF in 2024 (heavy maintenance).
+Nuclear    = 0.85
+
+[midterm4.gas_cost]
+# Zone-specific 2024 gas marginal cost [EUR/MWh_el]: Iberia buys on MIBGAS
+# (~31 EUR/MWh_th) vs TTF (~34) for FR/EU; cost = fuel/eta + CO2 + VOM.
+# Replaces the single pypsa CCGT figure (93.16, near-tied with coal 94.01)
+# that pinned every zone's marginal price at ~93 EUR/MWh.
+ccgt = { ES = 78.0, PT = 78.0, FR = 87.0, EU = 87.0 }
+ocgt = { ES = 105.0, PT = 105.0, FR = 117.0, EU = 117.0 }
+
+[csp]
+# ── CSP/TES prototype (CSP.jl) meets the market chain ────────────────────────
+# enabled toggles everything CSP; mode selects HOW it meets the chain:
+#
+#   "off"         — include-only: CSP.jl is compiled on every chain run (so
+#                   it cannot silently rot) and CSP.* is available
+#                   interactively; the chain itself is untouched. This is the
+#                   behaviour when mode is omitted (and the pre-Option-B one).
+#   "postprocess" (Option B) — after stage 8 the plant is re-dispatched
+#                   against the CLEARED prices in results/<label>/
+#                   market_prices.csv. Pure price taker: the plant is in no
+#                   market model, so it cannot influence any clearing. Writes
+#                   results/<label>/csp/:
+#                     csp_summary.csv          one row per (gate, day)
+#                     csp_<gate>_dispatch.csv  hourly dispatch per gate stream
+#                   Manual re-run without re-running the chain:
+#                     julia --project=. -e 'using TOML;
+#                         cfg = TOML.parsefile("config.toml");
+#                         include("CSP/csp_option_b.jl");
+#                         run_csp_option_b(results_dir = "results/Trinity",
+#                                          csp_cfg = cfg["csp"])'
+#   "embedded"    (Option A) — chain-native unit in every stage (DA..BAL +
+#                   redispatch), i.e. CSP CAN influence the market. The plants
+#                   listed in embed_plant_ids (rows of plants_file) become
+#                   network units in every stage LP; their TES physics live in
+#                   solve_da. Implemented — design and notes in
+#                   CSP/option_A_chain_native_csp_design.md.
+#
+#   standalone demo:  julia --project=. CSP.jl --plants-file Data/csp_plants.csv --plant-id demo
+#   smoke test:       julia --project=. test/csp_test.jl  (also tests Option B)
+enabled = true
+mode    = "embedded"
+
+# Gate streams to dispatch (chain order). Every hour is valued at the price
+# of the last gate at or before the stream's gate that cleared that hour, so
+# the ID3 stream sees ID2 prices for hours 0-11 (ID3 trades hours 12-23 only).
+gates = ["DA", "ID2", "ID3", "CID", "BAL"]
+
+# Output subdirectory of results/<label>/ ("csp" by default).
+# out_subdir = "csp"
+
+# -- Plant data: the single source of truth is the plants file ---------------
+# Every CSP computation (Option B below, the thermal-value SDDP, the demos,
+# the weekly scenarios - and, when built, Option A) reads its plant from
+# Data/csp_plants.csv, one row per plant. There is NO built-in default
+# plant: a missing file, key or row is a hard error, never a silent
+# fallback. Change the plant by editing the file; study a variant by adding
+# a row and pointing plant_id at it. Columns:
+#   plant_id, bus_id, solar_capacity_mwth, pmax_e_mwe, tes_capacity_mwhth,
+#   q0_start_mwhth, q_end_target_mwhth, eta_solar, eta_power, eta_charge,
+#   thermal_leak_rate, pmax_charge_e_mwe, buy_from_grid, allow_sell,
+#   grid_price_floor_eur_mwh, vom_eur_mwh
+# grid_price_floor_eur_mwh is the risk floor on PLANNED grid purchases
+# [EUR/MWh]: at ~zero cleared prices the free SUN fills the tank (real prices
+# hardly stay at zero); only genuinely negative prices (paid to consume) make
+# grid charging the priority. pmax_charge_e_mwe is the electric-heater rating:
+# without it negative prices would make the price-taker LP unbounded.
+plants_file = "Data/csp_plants.csv"
+plant_id    = "demo"      # row of plants_file dispatched by Option B (section 9)
+
+# ── Option A (mode = "embedded") — the plant INSIDE every market LP ───────────
+# The rows of plants_file listed here become chain-native units (REQUIRED in
+# embedded mode — there is no default plant).
+embed_plant_ids = ["demo"]
+
+# Terminal value of the TES in every stage LP (design doc A.4/A.9):
+#   "cuts"    = the trained thermal value — the stage-1 cut set of the
+#               ReSDDP-derived SDDP (results/csp_sddp/cuts.csv; train with
+#               julia --project=. CSP/thermal_value_sddp.jl --plants-file
+#               Data/csp_plants.csv --plant-id demo --archetypes). The plant
+#               sells in every hour whose eta_power*price clears the value.
+#   "bellman" = the persistence cut (the same formula Option B uses; needs
+#               bellman_future_price below because the chain's prices are
+#               endogenous).
+#   "floor"   = no terminal value: only the daily terminal floor prices the tank.
+cut_policy = "cuts"
+
+# Expected next-day sale price [EUR/MWh] — REQUIRED only when cut_policy =
+# "bellman" (the chain clears prices endogenously, so the expectation must be
+# given explicitly). Unused by "cuts" and "floor".
+# bellman_future_price = 60.0
+
+# Grid charging inside the market LP. Default OFF: in the copper plate the
+# electric heater acts as a free transmission-hiding device (design doc A.9).
+# Overrides the plant row's buy_from_grid for the embedded units only.
+embedded_buy_from_grid = false

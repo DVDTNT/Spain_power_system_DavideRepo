@@ -1,0 +1,4 @@
+plant_id,bus_id,solar_capacity_mwth,pmax_e_mwe,tes_capacity_mwhth,q0_start_mwhth,q_end_target_mwhth,eta_solar,eta_power,eta_charge,thermal_leak_rate,pmax_charge_e_mwe,buy_from_grid,allow_sell,grid_price_floor_eur_mwh,vom_eur_mwh
+demo,ES00007,60.0,35.0,180.0,70.0,70.0,0.80,0.38,0.80,0.01,50.0,true,true,2.0,0.0
+weekly,ES00007,60.0,35.0,180.0,70.0,70.0,0.80,0.38,0.80,0.0005,50.0,true,true,2.0,0.0
+bigtes,ES00007,60.0,35.0,800.0,300.0,300.0,0.80,0.38,0.80,0.01,50.0,true,true,2.0,0.0

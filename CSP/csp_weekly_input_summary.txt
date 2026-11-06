@@ -1,0 +1,54 @@
+===============================================================================
+INPUT SUMMARY — csp_weekly_scenarios.jl
+===============================================================================
+Purpose : Self-contained 7-day (168 h) input set + runner for the CSP/TES
+          prototype in ../CSP.jl.  Nothing is read from Data/ — every hourly
+          profile is synthetic, shaped like a Spanish July week.
+Run     : julia --project=. CSP/csp_weekly_scenarios.jl   (from repo root)
+
+Horizon : T = 168 h, Mon 2024-07-01 .. Sun 2024-07-07, stage "DA".
+          (CSP.jl infers T from length(demand) = 168.)
+
+PLANT (CSP.jl demo scale)
+  solar field       60 MW_th
+  power block       35 MW_e
+  TES tank          180 MWh_th  (~2 full-load hours)
+  eta solar         0.80   field -> tank heat
+  eta charge        0.80   grid electricity -> tank heat
+  eta power         0.38   tank heat -> electricity
+  standing leak     0.0005 / h  (~1.2 %/day — physical molten-salt figure;
+                    the CSP.jl demo/tests deliberately stress with 0.01/h)
+  tank start q0     70 MWh_th; the stage must hand over >= 70 MWh_th after
+                    the week (terminal floor)
+
+PRICES (day-ahead, EUR/MWh_e)
+  Base weekday shape: night 41-48, morning peak 66 (07:00-08:00), midday
+  PV-glut dip 15-30 (10:00-16:00), evening peak 102 (20:00-21:00).
+  Day-of-week scale Mon..Sun = [1.00, 1.03, 1.00, 1.05, 1.02, 0.85, 0.82]
+  (weekends 15-20 % cheaper).  Buying costs the sale price + 3 EUR grid fees.
+  Grid-charging round trip = 0.8 * 0.38 = 30 %, so it only pays when the
+  midday-to-evening spread exceeds ~3.3x.  p_buy has no rating in the current
+  model — purchases are limited only by the tank.
+
+WEATHER SCENARIOS (all share plant, demand and base price shape)
+  A "clear skies all week"    7 clear days.  Clear-sky profile: sunrise
+     06:00, noon plateau 12:00-14:00, sunset ~21:00.  Deep midday price dips
+     (dip x0.55 on 10:00-16:00), overall prices x0.97.
+  B "mixed week"    clear / broken / overcast = 3 / 2 / 2 days (Mon clear,
+     Tue broken, Wed overcast, Thu clear, Fri broken, Sat clear, Sun
+     overcast).  Broken day = clear sky with morning (09:00-12:00) and
+     afternoon (14:00-17:00) cloud events; overcast = 15 % of clear
+     (diffuse only).  The dip follows the weather day by day:
+     x0.65 / x0.85 / x1.50 per day type, prices x1.00.
+  C "full cloud coverage"     7 overcast days; no midday dip (x1.60, prices
+     stay up without national PV), overall prices x1.08.
+
+DEMAND  Plant-scale local profile 10-24 MW (weekends -15 %), ~2.7 GWh/week.
+        Required input but inert standalone: CSP.jl keeps shortage / curtail
+        fixed to 0 as market-chain placeholders.
+
+CONTINUATION VALUE (theta_future cut)
+  Persistence: the week after the horizon repeats the same weather
+  (future_solar_forecast = solar_forecast).  Expected future sale price:
+  60 EUR/MWh (A) / 70 (B) / 90 (C) — cheap when sunny, dear when cloudy.
+  Resulting cut slope: a1 = 0.38 * future_price * (1 - mean(solar)).

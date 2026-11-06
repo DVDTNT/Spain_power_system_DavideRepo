@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PowerVision Run Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Nunito+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <h1>PowerVision Run Viewer</h1>
+    <span class="sub">Market-chain runs (DA → ID2 → ID3 → CID → BAL + redispatch) compared with real OMIE and ENTSO-E data</span>
+  </header>
+
+  <div class="layout">
+    <nav class="runs" aria-label="Runs">
+      <details class="run-filters" id="run-filters" open>
+        <summary><span>Filter by model version</span><span class="rf-active" id="rf-active"></span></summary>
+        <div class="rf-body" id="rf-body"></div>
+      </details>
+      <h2>Published runs · <span id="run-count"></span></h2>
+      <div class="run-list" id="run-list"></div>
+      <p class="hint">Runs are added with <span class="mono">python viewer\publish_powervision_run.py</span> in this repo, after each market-chain run. The viewer itself is adapted from the example in <span class="mono">viewer_example\</span>.</p>
+    </nav>
+
+    <main class="report" id="report">
+      <p class="status-note" id="status-note" hidden></p>
+      <section class="card run-head" id="run-head"></section>
+      <div class="sticky-bar">
+        <div class="tabs" role="tablist" aria-label="Report sections" id="tabs"></div>
+        <section class="period" id="period" aria-label="Time period shown"></section>
+      </div>
+      <section class="kpis" id="kpis" aria-label="Headline numbers" data-tabs="overview price mix status"></section>
+
+      <section class="card" id="sec-price" role="tabpanel" data-tabs="overview price">
+        <div class="sec-head">
+          <div>
+            <h3>Price: model vs real</h3>
+            <p>Spanish marginal price for each hour. "Real" is OMIE's day-ahead price, or for ID2, ID3 and CID the real intraday price of that market.</p>
+          </div>
+          <div class="controls">
+            <div class="seg" role="group" aria-label="Model market stage" id="price-stage"></div>
+            <div class="seg" role="group" aria-label="Time resolution" id="price-res"></div>
+          </div>
+        </div>
+        <div class="legend" id="price-legend"></div>
+        <div class="chart" id="price-chart"></div>
+        <p class="fineprint" id="price-note"></p>
+      </section>
+
+      <section class="card" id="sec-mix" role="tabpanel" data-tabs="overview mix">
+        <div class="sec-head">
+          <div>
+            <h3>Generation mix: model vs real</h3>
+            <p>Energy per technology. Market stages are compared with OMIE's day-ahead programme (the plan), the redispatch with ENTSO-E's measured generation (what plants really produced). "Compare with" switches the real data.</p>
+          </div>
+          <div class="controls">
+            <div class="seg" role="group" aria-label="Model stage for the mix" id="mix-stage"></div>
+            <div class="seg" role="group" aria-label="Time resolution for the mix" id="mix-res"></div>
+            <span class="ctl-label">Compare with</span>
+            <div class="seg" role="group" aria-label="Real data to compare with" id="mix-ref"></div>
+          </div>
+        </div>
+        <p class="ref-note" id="mix-ref-note" aria-live="polite"></p>
+        <div class="mix-grid">
+          <div>
+            <div class="legend" id="stack-legend"></div>
+            <div class="stack-pair">
+              <div><div class="stack-title" id="stack-real-title">Real</div><div class="chart" id="stack-real"></div></div>
+              <div><div class="stack-title" id="stack-model-title">Model</div><div class="chart" id="stack-model"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="table-wrap"><table id="mix-table"></table></div>
+            <p class="fineprint" id="mix-note"></p>
+          </div>
+          <div>
+            <div class="legend" id="mix-legend"></div>
+            <div class="small-multiples" id="mix-sm"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="sec-status" role="tabpanel" data-tabs="overview status">
+        <div class="sec-head">
+          <div>
+            <h3>AC redispatch: hours that did not solve</h3>
+            <p>Every hour where the AC redispatch found no solution, with why it stopped and what the market looked like in that hour. Click a row to see the grid in that hour.</p>
+          </div>
+        </div>
+        <div class="status-grid">
+          <div id="fail-list"></div>
+          <div class="rate-list" id="rates"></div>
+        </div>
+      </section>
+
+      <section class="card" id="sec-csp" role="tabpanel" data-tabs="overview csp">
+        <div class="sec-head">
+          <div>
+            <h3>CSP/TES plant: price taker (Option B)</h3>
+            <p>The concentrating-solar plant (solar field, molten-salt tank, power block) is re-dispatched against each gate's cleared prices, without influencing any market. Pick the gate stream; BAL is the one closest to physical reality. θ_future is the continuation value the plant assigns to the heat it keeps in the tank at the end of the day.</p>
+          </div>
+          <div class="controls"><div class="seg" role="group" aria-label="CSP gate stream" id="csp-gate"></div></div>
+        </div>
+        <dl class="facts" id="csp-plant"></dl>
+        <div class="kpis" id="csp-kpis"></div>
+        <div class="legend" id="csp-legend"></div>
+        <div class="chart" id="csp-chart"></div>
+        <div class="legend" id="csp-tes-legend"></div>
+        <div class="chart" id="csp-tes-chart"></div>
+        <div class="table-wrap"><table id="csp-table"></table></div>
+        <p class="fineprint" id="csp-note"></p>
+      </section>
+
+      <section class="card" id="sec-esios-intro" role="tabpanel" data-tabs="esios">
+        <div class="sec-head">
+          <div>
+            <h3 class="pv-title">REE (e·sios): what the grid operator really did</h3>
+            <p>Red Eléctrica's own data for the stages after the market, from its e·sios platform: redispatch for grid security and the balancing markets. These are the real counterparts of the model's last two stages (BAL and AC redispatch). Spanish peninsula, 2024; the data is downloaded with esios_download/fetch_esios.py (model repo) and built into reference/esios_2024.js by tools/build_esios.py.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="sec-rd" role="tabpanel" data-tabs="esios">
+        <div class="sec-head">
+          <div>
+            <h3>Redispatch: model vs what REE really did</h3>
+            <p>How much the grid stage turned plants up and down, next to REE's own redispatch for grid security (e·sios). REE acts on the day-ahead programme and starts plants, mostly gas, where the grid needs them; the model acts on its balancing schedule.</p>
+          </div>
+        </div>
+        <div class="legend" id="rd-legend"></div>
+        <div id="rd-charts"></div>
+        <div class="table-wrap pv-gap"><table id="rd-table"></table></div>
+        <p class="fineprint" id="rd-cost-note"></p>
+        <h4 class="rd-h4">Extra cost of redispatch</h4>
+        <div class="chart" id="rd-cost-chart"></div>
+        <h4 class="rd-h4">Why the difference?</h4>
+        <div id="rd-why"></div>
+        <p class="fineprint" id="rd-why-note"></p>
+        <p class="fineprint">Pooled to match the model's single redispatch stage: REE's technical constraints after the day-ahead market (phase I turns plants up or down for grid security, phase II rebalances) plus real-time constraints, Spanish peninsula, from e·sios (volumes 701–704, 720, 721; costs 1373–1376, 1723, 1724). REE pays what goes up its own bid including start-up costs, and refunds what goes down at its bid or the day-ahead price (P.O. 3.2, P.O. 14.4); the cost is the extra cost over the market, paid by consumers. Model: AC redispatch minus balancing over all units except the border flows, valued at the model's marginal costs; it includes grid losses, and failed AC hours have no value.</p>
+      </section>
+
+      <section class="card" id="sec-bal" role="tabpanel" data-tabs="esios">
+        <div class="sec-head">
+          <div>
+            <h3>Balancing: the model's BAL stage vs REE's balancing markets</h3>
+            <p>The model's balancing price next to REE's balancing energy prices, and how much balancing energy REE used. Spain has no single balancing price: RR (replacement reserve) is the hourly market closest to the model's BAL stage; aFRR is the automatic reserve.</p>
+          </div>
+        </div>
+        <div class="legend" id="bal-legend"></div>
+        <div class="chart" id="bal-chart"></div>
+        <div class="legend pv-gap" id="bal-vol-legend"><span><i class="sw-line" style="background:var(--real)"></i>REE (aFRR + mFRR + RR)</span><span><i class="sw-line" style="background:var(--model)"></i>Model, balancing stage</span></div>
+        <div id="bal-vol"></div>
+        <div class="table-wrap pv-gap"><table id="bal-table"></table></div>
+        <div class="table-wrap pv-gap"><table id="imb-table"></table></div>
+        <p class="fineprint">REE: e·sios indicators 680–683 (aFRR), 10394/10395 and 676/677 (mFRR; 10386/10387 in December), 1782–1784 (RR), 1338 (net imbalance). Prices are averaged over the hours with activation. Model: the balancing stage's change from the continuous intraday schedule, and the forecast change (load − wind − solar) it covers.</p>
+      </section>
+
+      <section class="card" id="sec-grid" role="tabpanel" data-tabs="overview grid">
+        <div class="sec-head">
+          <div>
+            <h3>Grid: how full each line is</h3>
+            <p>Every line in the model's grid, drawn straight between its substations and coloured by its loading in the AC redispatch. Thick lines are 400 kV, thin lines 220 kV and below, dashed lines go to France or Portugal, squares are transformers. Use "Show" to pick what is drawn.</p>
+          </div>
+          <div class="controls">
+            <div class="seg" role="group" aria-label="What the colour shows" id="grid-mode"></div>
+            <span class="ctl-label">Map</span>
+            <div class="seg" role="group" aria-label="Map style" id="grid-style"></div>
+          </div>
+        </div>
+        <div class="grid-hour" id="grid-hour" hidden></div>
+        <div class="map-search"><input type="search" id="grid-search" list="grid-search-list" autocomplete="off" placeholder="Search a line, transformer or substation, e.g. TR_65a15878 or ES00744" aria-label="Search lines, transformers and substations"><datalist id="grid-search-list"></datalist></div>
+        <div class="legend" id="grid-legend"></div>
+        <div class="grid-wrap">
+          <div>
+            <div class="map" id="grid-map"></div>
+            <p class="map-hint">Drag to move. Zoom with + and −, a double-click, or Ctrl + scroll. Hover a line for details.</p>
+          </div>
+          <div class="grid-side">
+            <h4 id="grid-top-title">Most loaded</h4>
+            <div class="table-wrap"><table id="grid-top"></table></div>
+          </div>
+        </div>
+        <div class="grid-table">
+          <div class="gt-head"><h4>Lines and transformers</h4><span id="grid-table-count"></span></div>
+          <div class="table-wrap gt-scroll"><table id="grid-table"></table></div>
+          <p class="map-hint">Click a column to sort, a row to show it on the map. The list follows the Show buttons and the search box.</p>
+        </div>
+        <p class="fineprint">Basemap: Natural Earth (outlines, shaded relief, public domain) and es-atlas (communities, provinces). Loading is the flow divided by the line's limit in the model. Where a corridor has several circuits, the most loaded circuit counts. Hours where the AC redispatch failed have no flows and are left out of the maximum and the hour counts.</p>
+      </section>
+
+      <section class="card" id="sec-plants" role="tabpanel" data-tabs="overview plants">
+        <div class="sec-head">
+          <div>
+            <h3>Power plants</h3>
+            <p>Every real power plant in the model at its substation, coloured by fuel. Units of the same fuel at one substation are one circle; the circle's area shows the MW you pick.</p>
+          </div>
+          <div class="controls">
+            <div class="seg" role="group" aria-label="What the circle size shows" id="plant-size"></div>
+            <div class="seg" role="group" aria-label="Period or one hour" id="plant-time"></div>
+            <span class="ctl-label">Map</span>
+            <div class="seg" role="group" aria-label="Map style" id="plant-style"></div>
+          </div>
+        </div>
+        <div class="grid-hour" id="plant-hour" hidden></div>
+        <div class="map-search"><input type="search" id="plant-search" list="plant-search-list" autocomplete="off" placeholder="Search a plant or substation, e.g. Almaraz or Aboño" aria-label="Search power plants"><datalist id="plant-search-list"></datalist></div>
+        <div class="legend" id="plant-legend"></div>
+        <div class="grid-wrap">
+          <div>
+            <div class="map" id="plant-map"></div>
+            <p class="map-hint">Click a fuel above to hide or show it. Drag to move; zoom with + and −, a double-click, or Ctrl + scroll.</p>
+          </div>
+          <div class="grid-side">
+            <h4 id="plant-top-title">Largest plants</h4>
+            <div class="table-wrap"><table id="plant-top"></table></div>
+          </div>
+        </div>
+        <p class="fineprint">Real vs model uses ENTSO-E's measured output per unit, matched to the model's plants in <code>entsoe_unit_crosswalk.csv</code>; plants ENTSO-E reports only in part are left out. Output and change are from the AC redispatch; "Redispatch change" is redispatch output minus balancing output, so it shows what the grid stage changed. Hydro includes pumped storage (pumping is not counted as output). Not shown: the model's industrial CHP, waste and mini-hydro blocks (spread over 100 substations, so not at real locations). Failed AC hours are left out of averages.</p>
+      </section>
+
+      <section class="card" id="sec-flex" role="tabpanel" data-tabs="flex">
+        <div class="sec-head">
+          <div>
+            <h3>Trading margin: what a storage unit could earn on this run's prices</h3>
+            <p>For every day, the best plan for one storage unit that charges in the cheapest hours and discharges in the most expensive ones, worked out on this run's model day-ahead price or, if you pick it, OMIE's real one for the same days. It is an upper bound for that price: the unit knows the whole day's prices in advance, does not move the price and trades the day-ahead only. Whether that margin pays for building the unit is on the Investment case tab.</p>
+          </div>
+          <div class="controls">
+            <div class="seg" role="group" aria-label="Prices" id="flex-prices"></div>
+            <div class="seg" role="group" aria-label="Storage unit" id="flex-asset"></div>
+          </div>
+        </div>
+        <div class="flex-params" id="flex-params"></div>
+        <div class="kpis flex-kpis" id="flex-kpis"></div>
+        <p class="flex-margin" id="flex-margin"></p>
+        <h4 class="flex-h4" id="flex-price-h">Model price and when the unit trades</h4>
+        <div class="legend" id="flex-price-legend"></div>
+        <div class="chart" id="flex-price-chart"></div>
+        <h4 class="flex-h4">Trading margin per day</h4>
+        <div class="legend" id="flex-legend"></div>
+        <div class="chart" id="flex-chart"></div>
+        <h4 class="flex-h4">When it charges and discharges</h4>
+        <p class="fineprint flex-sub">Share of days the unit charges (below the line) or discharges (above) in each hour of the day.</p>
+        <div class="flex-profiles" id="flex-profiles"></div>
+        <h4 class="flex-h4">Per month</h4>
+        <div class="table-wrap"><table id="flex-table"></table></div>
+        <h4 class="flex-h4">How it decides</h4>
+        <div class="flex-explain" id="flex-explain"></div>
+        <h4 class="flex-h4">What the settings mean</h4>
+        <div class="flex-terms" id="flex-terms"></div>
+        <p class="fineprint" id="flex-note"></p>
+      </section>
+
+      <section class="card" id="sec-invest" role="tabpanel" data-tabs="invest">
+        <div class="sec-head">
+          <div>
+            <h3>Investment case: does the trading margin pay for building it?</h3>
+            <p>The trading margin from the Trading margin tab, set against what the unit costs to build (CAPEX) and to run (OPEX) over its lifetime.</p>
+          </div>
+          <div class="controls">
+            <div class="seg" role="group" aria-label="Prices" id="invest-prices"></div>
+            <div class="seg" role="group" aria-label="Storage unit" id="invest-asset"></div>
+          </div>
+        </div>
+        <p class="invest-unit" id="invest-unit"></p>
+        <p class="flex-margin"><b>Where the costs come from.</b> TES: PNNL's 2022 storage cost report (molten salt with an electric heater and a steam cycle, 2021 dollars at 0.924 €/$), without a new turbine since Soto de Ribera has one; refurbishing the old turbine is not included (fixed sum 0). Real check: Project Alba in Chile (AES Andes) turns a 560 MW coal plant into molten-salt storage for US$450 M, about two-thirds of this per kW out. Battery: still made-up placeholders. The trading margin of this run's year is assumed to repeat every year of the lifetime (changed by "Margin change" if set).</p>
+        <div id="npv-plant"></div>
+        <div class="npv-inputs" id="npv-inputs"></div>
+        <div class="kpis npv-kpis" id="npv-kpis"></div>
+        <p class="npv-cash" id="npv-cash"></p>
+        <p class="fineprint flex-sub">Money in or out so far, discounted to today: the investment in year 0, then each year's cash (trading margin − fixed OPEX − variable OPEX). Where it crosses zero, the investment is paid back.</p>
+        <div id="npv-chart"></div>
+      </section>
+
+      <section class="card" id="sec-compare" role="tabpanel" data-tabs="compare">
+        <div class="sec-head">
+          <div>
+            <h3>Compare two runs</h3>
+            <p>The run you are viewing (A) next to a second run (B) of your choice, on the days both have. Use the period bar above to look at fewer days.</p>
+          </div>
+        </div>
+        <div class="cmp-pick" id="cmp-pick"></div>
+        <div id="cmp-body"></div>
+      </section>
+
+      <section class="card" id="sec-stages" role="tabpanel" data-tabs="stages">
+        <div class="sec-head">
+          <div>
+            <h3 class="pv-title">Market stages: the model next to the PowerVision paper</h3>
+            <p>The overview the PowerVision paper (Koks et al., 2026) gives for Norway, filled in for this model of Spain. Each figure and table keeps the paper's number, so they can be read side by side. These facts are the same for every run, except the order of the market stages and the model version under Model structure, which follow the run you picked, and the traded volume at the end, which follows the run and the days shown.</p>
+          </div>
+        </div>
+        <div class="pv-block">
+          <h4>Model structure</h4>
+          <figure class="pv-fig"><div class="pv-svg-wrap" id="pv-structure"></div><figcaption id="pv-structure-cap"></figcaption></figure>
+          <h4 class="pv-gap">Order of the market stages: stage by stage or day by day</h4>
+          <figure class="pv-fig"><div class="pv-svg-wrap" id="pv-order"></div><figcaption id="pv-order-cap"></figcaption></figure>
+          <dl class="facts pv-gap" id="pv-version"></dl>
+        </div>
+        <div class="pv-block">
+          <h4>Market stages and gate closure</h4>
+          <figure class="pv-fig"><div class="table-wrap"><table id="pv-gates" class="pv-book"></table></div><figcaption id="pv-gates-cap"></figcaption></figure>
+        </div>
+        <div class="pv-block">
+          <h4>Wind, solar and load</h4>
+          <figure class="pv-fig"><div class="table-wrap"><table id="pv-capacity" class="pv-book"></table></div><figcaption id="pv-capacity-cap"></figcaption></figure>
+        </div>
+        <div class="pv-block">
+          <h4>Data sources and processing</h4>
+          <figure class="pv-fig"><div id="pv-sources"></div><figcaption id="pv-sources-cap"></figcaption></figure>
+        </div>
+        <div class="pv-block">
+          <h4>Line and transformer assumptions</h4>
+          <figure class="pv-fig"><div class="table-wrap"><table id="pv-lines" class="pv-book"></table></div>
+            <div class="table-wrap pv-gap"><table id="pv-trafos" class="pv-book"></table></div><figcaption id="pv-lines-cap"></figcaption></figure>
+        </div>
+        <div class="pv-block">
+          <h4>Traded volume per stage</h4>
+          <figure class="pv-fig"><div class="table-wrap"><table id="pv-traded" class="pv-book"></table></div><figcaption id="pv-traded-cap"></figcaption></figure>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<!-- map background, the list of published runs, then the viewer itself -->
+<script src="reference/basemap.js"></script>
+<script src="reference/model_facts.js"></script>
+<script src="reference/esios_2024.js"></script>
+<script src="runs/manifest.js"></script>
+<script src="viewer.js"></script>
+</body>
+</html>

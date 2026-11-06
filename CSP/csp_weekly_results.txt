@@ -1,0 +1,106 @@
+===============================================================================
+RESULTS — CSP weekly scenarios (csp_weekly_scenarios.jl)
+===============================================================================
+Run        : julia --project=. CSP/csp_weekly_scenarios.jl   (from repo root)
+Date of run: 2026-10-26
+Model      : CSP.jl prototype, stage "DA", horizon T = 168 h
+             Mon 2024-07-01 .. Sun 2024-07-07 (hour 1 = Mon 00:00-01:00 CEST)
+Plant      : 60.0 MW_th solar field, 35.0 MW_e power block, 180.0 MWh_th tank
+             eta solar/charge/power = 0.80 / 0.80 / 0.38, leak 0.0005/h
+             q0 = q_end floor = 70.0 MWh_th
+
+Common to all three scenarios: termination OPTIMAL; the TES starts and ends the
+week at the 70.0 MWh_th floor (tank swings over the full 0..180 range inside
+the week); standing loss 4.8 MWh_th over the 168 h.
+
+=== Scenario A — clear skies all week (high irradiance throughout the day) ===
+    7 clear days; deep midday PV-glut dips (x0.55), prices x0.97
+  termination          : OPTIMAL
+  stage objective      : -70482.0 EUR = 0.0 purchases - 69468.5 sales - 1013.5 continuation value
+  exported energy      : 1116.6 MWh_e over the week
+    per day [MWh_e]    : [186.0, 159.5, 159.5, 159.5, 159.5, 159.5, 132.9]
+    solar heat [MWh_th]: [420.5, 420.5, 420.5, 420.5, 420.5, 420.5, 420.5]
+  grid purchases       : 0.0 MWh_e for 0.0 EUR
+  solar heat collected : 2943.4 MWh_th
+  TES level [MWh_th]   : start 70.0, end 70.0, min -0.0, max 180.0
+  standing leak        : 4.8 MWh_th over the week
+  theta_future         : 1013.5 EUR (implied cut slope 14.48 EUR/MWh_th)
+
+=== Scenario B — mixed week (sunny and cloudy spells) ===
+    clear / broken / overcast = 3 / 2 / 2 days; dip x0.65 / x0.85 / x1.50 per day type
+  termination          : OPTIMAL
+  stage objective      : -56780.2 EUR = 6973.9 purchases - 62342.5 sales - 1411.6 continuation value
+  exported energy      : 829.8 MWh_e over the week
+    per day [MWh_e]    : [186.0, 106.8, 68.9, 159.5, 106.8, 159.5, 42.2]
+    solar heat [MWh_th]: [420.5, 281.6, 63.1, 420.5, 281.6, 420.5, 63.1]
+  grid purchases       : 297.1 MWh_e for 6973.9 EUR
+  solar heat collected : 1950.8 MWh_th
+  TES level [MWh_th]   : start 70.0, end 70.0, min -0.0, max 180.0
+  standing leak        : 4.8 MWh_th over the week
+  theta_future         : 1411.6 EUR (implied cut slope 20.17 EUR/MWh_th)
+
+=== Scenario C — full cloud coverage all week (diffuse irradiance only) ===
+    7 overcast days; no midday dip (x1.60), prices x1.08 overall
+  termination          : OPTIMAL
+  stage objective      : -23667.7 EUR = 26671.8 purchases - 48076.6 sales - 2262.9 continuation value
+  exported energy      : 455.6 MWh_e over the week
+    per day [MWh_e]    : [68.9, 68.9, 68.9, 68.9, 68.9, 68.9, 42.2]
+    solar heat [MWh_th]: [63.1, 63.1, 63.1, 63.1, 63.1, 63.1, 63.1]
+  grid purchases       : 952.9 MWh_e for 26671.8 EUR
+  solar heat collected : 441.5 MWh_th
+  TES level [MWh_th]   : start 70.0, end 70.0, min -0.0, max 180.0
+  standing leak        : 4.8 MWh_th over the week
+  theta_future         : 2262.9 EUR (implied cut slope 32.33 EUR/MWh_th)
+
+-------------------------------------------------------------------------------
+Comparison table
+-------------------------------------------------------------------------------
+                                    A clear       B mixed      C overcast
+termination                         OPTIMAL       OPTIMAL       OPTIMAL
+stage objective [EUR]              -70482.0      -56780.2      -23667.7
+exported energy [MWh_e]              1116.6         829.8         455.6
+solar heat collected [MWh_th]        2943.4        1950.8         441.5
+grid purchases [MWh_e]                 0.0         297.1         952.9
+grid purchase cost [EUR]               0.0        6973.9       26671.8
+sales revenue [EUR]                69468.5       62342.5       48076.6
+average sale price [EUR/MWh_e]        62.2          75.1         105.5
+theta_future [EUR]                  1013.5        1411.6        2262.9
+implied cut slope [EUR/MWh_th]        14.48         20.17         32.33
+
+-------------------------------------------------------------------------------
+Interpretation
+-------------------------------------------------------------------------------
+A  Sells the full daily harvest (~160 MWh_e/day), holding only through the
+   deep midday dip; liquidates the initial 70 MWh_th on Monday and refills to
+   the floor on Sunday.  Zero grid purchases: the tank is already full of FREE
+   solar exactly during the cheap midday hours, so midday arbitrage has no
+   room.  Lowest continuation value (sunny future, 60 EUR/MWh).
+
+B  Sunny days behave like A.  On the two overcast days (Wed, Sun) the diffuse
+   harvest is small, the tank has spare room and there is no PV-glut dip, so
+   the plant buys 297.1 MWh_e of cheap midday power and resells it from TES
+   into the evening peak.  Continuation value roughly doubles vs A.
+
+C  The diffuse-only harvest is tiny (441.5 MWh_th/week).  With no national PV
+   the midday price stays moderate under a high evening peak (spread above
+   the ~3.3x round-trip threshold), so the plant acts as a battery: ~136
+   MWh_e/day of cheap midday purchases, resold into the evening peak — about
+   64 % of its exports are grid-origin.  Sells only into the peaks (avg
+   105.5 EUR/MWh_e).  Highest continuation value (dark future, 90 EUR/MWh).
+
+-------------------------------------------------------------------------------
+Verification notes
+-------------------------------------------------------------------------------
+* Energy balance closes in every scenario:
+    exports / 0.38 = solar_heat + 0.8 * purchases - leak (+/- tank delta)
+  e.g. C: 455.6 / 0.38 = 1198.9 = 441.5 + 0.8 * 952.9 - 4.8.
+* The implied cut slopes reproduce the model formula
+    a1 = eta_power * future_sell_price * max(0, 1 - mean(future_solar_forecast)):
+    A 0.38 * 60 * (1 - 0.365) = 14.48
+    B 0.38 * 70 * (1 - 0.242) = 20.17
+    C 0.38 * 90 * (1 - 0.055) = 32.33
+* theta_future = a1 * q_end exactly in all scenarios (tank ends at the 70
+  MWh_th floor).
+* "min -0.0" in the TES line is the IEEE-754 negative-zero display of an exact
+  0.0 (the tank legitimately empties during the week); cosmetic only.
+

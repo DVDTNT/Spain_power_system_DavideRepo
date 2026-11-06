@@ -1,0 +1,32 @@
+[scenario]
+label = "2024"
+
+[da]
+enabled = true
+
+[id2]
+enabled = false
+
+[id3]
+enabled = false
+
+[cid]
+enabled = false
+
+[balancing]
+enabled = false
+
+[redispatch]
+enabled = false
+
+[bellman]
+bgn_date = "2024-07-02"
+ssv_step = 168
+bellman_file = "Data/BellmanValuesOUT_sddp4.csv"
+volume_file = "Data/Volume_Scen0_OUT_sddp4.csv"
+turbine_file = ""
+
+[midterm4]
+cuts_out = ""
+volume_out = ""
+turbine_out = ""
