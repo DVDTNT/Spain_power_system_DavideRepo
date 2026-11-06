@@ -838,24 +838,27 @@ plant_id    = "demo"      # row of plants_file dispatched by Option B (section 9
 # embedded mode — there is no default plant).
 embed_plant_ids = ["demo"]
 
-# Terminal value of the TES in every stage LP (design doc A.4/A.9):
+# Terminal value of the TES in every stage LP (REQUIRED in embedded mode —
+# no default; design doc A.4/A.9):
 #   "cuts"    = the trained thermal value — the stage-1 cut set of the
-#               ReSDDP-derived SDDP (results/csp_sddp/cuts.csv; train with
+#               ReSDDP-derived SDDP at cuts_file (train with
 #               julia --project=. CSP/thermal_value_sddp.jl --plants-file
 #               Data/csp_plants.csv --plant-id demo --archetypes). The plant
 #               sells in every hour whose eta_power*price clears the value.
 #   "bellman" = the persistence cut (the same formula Option B uses; needs
-#               bellman_future_price below because the chain's prices are
-#               endogenous).
+#               bellman_future_price below).
 #   "floor"   = no terminal value: only the daily terminal floor prices the tank.
 cut_policy = "cuts"
+# The trained cut file (REQUIRED when cut_policy = "cuts" — no default).
+cuts_file = "results/csp_sddp/cuts.csv"
 
 # Expected next-day sale price [EUR/MWh] — REQUIRED only when cut_policy =
 # "bellman" (the chain clears prices endogenously, so the expectation must be
 # given explicitly). Unused by "cuts" and "floor".
 # bellman_future_price = 60.0
 
-# Grid charging inside the market LP. Default OFF: in the copper plate the
-# electric heater acts as a free transmission-hiding device (design doc A.9).
-# Overrides the plant row's buy_from_grid for the embedded units only.
+# Grid charging inside the market LP (REQUIRED in embedded mode — no default;
+# false is recommended: in the copper plate the electric heater acts as a
+# free transmission-hiding device, design doc A.9). Overrides the plant row's
+# buy_from_grid for the embedded units only.
 embedded_buy_from_grid = false

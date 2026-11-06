@@ -110,7 +110,12 @@ const CSP_UNITS = if CSP_EMBEDDED
         "(the plants overlay file, e.g. \"Data/csp_plants.csv\")")
     rows = CSP.read_csp_plants(joinpath(@__DIR__, String(pf)))
     byid = Dict(u.plant_id => u for u in rows)
-    chg  = Bool(get(CSP_CFG, "embedded_buy_from_grid", false))
+    chg_key = get(CSP_CFG, "embedded_buy_from_grid", nothing)
+    chg_key === nothing && error("[csp]: mode = \"embedded\" requires " *
+        "embedded_buy_from_grid = true | false — there is no default (false is " *
+        "recommended: in the copper plate the heater acts as a free " *
+        "transmission-hiding device)")
+    chg  = Bool(chg_key)
     out  = CSP.CSPPlant[]
     for id in String.(ids)
         haskey(byid, id) || error("[csp].embed_plant_ids: '$id' is not a row of $pf " *
@@ -123,16 +128,24 @@ const CSP_UNITS = if CSP_EMBEDDED
 else
     nothing
 end
-const CSP_CUT_POLICY = CSP_EMBEDDED ?
-    lowercase(String(get(CSP_CFG, "cut_policy", "cuts"))) : "off"
-if CSP_EMBEDDED
-    CSP_CUT_POLICY in ("cuts", "bellman", "floor") ||
+const CSP_CUT_POLICY = if CSP_EMBEDDED
+    p = get(CSP_CFG, "cut_policy", nothing)
+    p === nothing && error("[csp]: mode = \"embedded\" requires cut_policy = " *
+        "\"cuts\" | \"bellman\" | \"floor\" — there is no default (the " *
+        "no-silent-default policy applies to every embedded-mode key)")
+    pol = lowercase(String(p))
+    pol in ("cuts", "bellman", "floor") ||
         error("config.toml: [csp].cut_policy must be \"cuts\", \"bellman\" or " *
-              "\"floor\" (got \"$CSP_CUT_POLICY\")")
+              "\"floor\" (got \"$pol\")")
+    pol
+else
+    "off"
 end
 const CSP_CUTS = if CSP_EMBEDDED && CSP_CUT_POLICY == "cuts"
-    f = joinpath(@__DIR__, String(get(CSP_CFG, "cuts_file",
-                                      joinpath("results", "csp_sddp", "cuts.csv"))))
+    cf = get(CSP_CFG, "cuts_file", nothing)
+    cf === nothing && error("[csp]: cut_policy = \"cuts\" requires cuts_file " *
+        "(e.g. \"results/csp_sddp/cuts.csv\") — there is no default")
+    f = joinpath(@__DIR__, String(cf))
     isfile(f) || error("[csp].cut_policy = \"cuts\": $f not found — train the thermal " *
         "value first:\n  julia --project=. CSP/thermal_value_sddp.jl --plants-file " *
         "Data/csp_plants.csv --plant-id demo --archetypes")
